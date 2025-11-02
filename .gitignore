@@ -2,40 +2,26 @@
 prv-service/prv-service
 chaincode/chaincode
 *.exe
-*.dll
-*.so
-*.dylib
 
-# Generated gRPC code
+# Generated gRPC
 prv-service/*.pb.go
 prv-service/*_grpc.pb.go
 
-# Go build artifacts
-*.test
-*.out
-vendor/
-!chaincode/vendor/.gitkeep
+# Vendor
+chaincode/vendor/
 
-# Chaincode package
-chaincode/*.tar.gz
-chaincode/dfir.tar.gz
+# Packages
+*.tar.gz
 
 # IDE
 .vscode/
 .idea/
 *.swp
-*.swo
-*~
 
 # OS
 .DS_Store
-Thumbs.db
 
-# Logs
+# Temp
 *.log
-
-# Temporary files
 prv-config.env
 permit.json
-attestation.json
-prv_pubkey.json
