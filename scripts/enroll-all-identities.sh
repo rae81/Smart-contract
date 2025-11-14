@@ -43,7 +43,6 @@ enroll_identity() {
 
     echo "Enrolling $IDENTITY_NAME ($IDENTITY_TYPE) with ca-$CA_NAME..."
 
-    local CA_URL="https://admin:adminpw@localhost:$CA_PORT"
     local TLS_CERT="$PROJECT_ROOT/fabric-ca/$CA_NAME/ca-chain.pem"  # Use full chain (intermediate + root CA)
 
     # Determine organization directory (no /msp suffix - that's added later for specific paths)
@@ -54,7 +53,7 @@ enroll_identity() {
         ORG_DIR="$FABRIC_CA_CLIENT_HOME/peerOrganizations/$ORG_NAME"
     fi
 
-    # Register identity if not admin
+    # Register identity if not admin (authenticate with admin's certificate, not password)
     if [ "$IDENTITY_NAME" != "admin" ]; then
         fabric-ca-client register \
             --caname ca-$CA_NAME \
@@ -62,7 +61,7 @@ enroll_identity() {
             --id.secret ${IDENTITY_NAME}pw \
             --id.type $IDENTITY_TYPE \
             --tls.certfiles $TLS_CERT \
-            --url $CA_URL \
+            --url https://localhost:$CA_PORT \
             --mspdir $ORG_DIR/users/Admin@$ORG_NAME/msp || true
     fi
 
