@@ -1,0 +1,9 @@
+{
+  "network-configs": {
+    "cold-network": {
+      "name": "Cold Blockchain Network",
+      "profile": "./connection-profile/cold-network.json"
+    }
+  },
+  "license": "Apache-2.0"
+}

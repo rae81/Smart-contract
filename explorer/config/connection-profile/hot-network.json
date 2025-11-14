@@ -1,0 +1,62 @@
+{
+  "name": "hot-network",
+  "version": "1.0.0",
+  "client": {
+    "tlsEnable": true,
+    "adminCredential": {
+      "id": "exploreradmin",
+      "password": "exploreradminpw"
+    },
+    "enableAuthentication": false,
+    "organization": "LawEnforcementMSP",
+    "connection": {
+      "timeout": {
+        "peer": {
+          "endorser": "300"
+        },
+        "orderer": "300"
+      }
+    }
+  },
+  "channels": {
+    "hotchannel": {
+      "peers": {
+        "peer0.lawenforcement.hot.coc.com": {}
+      }
+    }
+  },
+  "organizations": {
+    "LawEnforcementMSP": {
+      "mspid": "LawEnforcementMSP",
+      "fullpath": true,
+      "adminPrivateKey": {
+        "path": "/tmp/crypto/peerOrganizations/lawenforcement.hot.coc.com/users/Admin@lawenforcement.hot.coc.com/msp/keystore/priv_sk"
+      },
+      "signedCert": {
+        "path": "/tmp/crypto/peerOrganizations/lawenforcement.hot.coc.com/users/Admin@lawenforcement.hot.coc.com/msp/signcerts/Admin@lawenforcement.hot.coc.com-cert.pem"
+      }
+    }
+  },
+  "peers": {
+    "peer0.lawenforcement.hot.coc.com": {
+      "tlsCACerts": {
+        "path": "/tmp/crypto/peerOrganizations/lawenforcement.hot.coc.com/peers/peer0.lawenforcement.hot.coc.com/tls/ca.crt"
+      },
+      "url": "grpcs://peer0.lawenforcement.hot.coc.com:7051",
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.lawenforcement.hot.coc.com"
+      }
+    }
+  },
+  "orderers": {
+    "orderer.hot.coc.com": {
+      "url": "grpcs://orderer.hot.coc.com:7050",
+      "grpcOptions": {
+        "ssl-target-name-override": "orderer.hot.coc.com"
+      },
+      "tlsCACerts": {
+        "path": "/tmp/crypto/ordererOrganizations/hot.coc.com/orderers/orderer.hot.coc.com/tls/ca.crt"
+      }
+    }
+  }
+}

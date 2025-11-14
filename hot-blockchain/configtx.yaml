@@ -1,0 +1,208 @@
+Organizations:
+  - &OrdererOrg
+      Name: OrdererMSP
+      ID: OrdererMSP
+      MSPDir: crypto-config/ordererOrganizations/hot.coc.com/msp
+      Policies:
+        Readers:
+          Type: Signature
+          Rule: "OR('OrdererMSP.member')"
+        Writers:
+          Type: Signature
+          Rule: "OR('OrdererMSP.member')"
+        Admins:
+          Type: Signature
+          Rule: "OR('OrdererMSP.admin')"
+      OrdererEndpoints:
+        - orderer.hot.coc.com:7050
+
+  - &LawEnforcement
+      Name: LawEnforcementMSP
+      ID: LawEnforcementMSP
+      MSPDir: crypto-config/peerOrganizations/lawenforcement.hot.coc.com/msp
+      Policies:
+        Readers:
+          Type: Signature
+          Rule: "OR('LawEnforcementMSP.admin', 'LawEnforcementMSP.peer', 'LawEnforcementMSP.client')"
+        Writers:
+          Type: Signature
+          Rule: "OR('LawEnforcementMSP.admin', 'LawEnforcementMSP.client')"
+        Admins:
+          Type: Signature
+          Rule: "OR('LawEnforcementMSP.admin')"
+        Endorsement:
+          Type: Signature
+          Rule: "OR('LawEnforcementMSP.peer')"
+      AnchorPeers:
+        - Host: peer0.lawenforcement.hot.coc.com
+          Port: 7051
+
+  - &ForensicLab
+      Name: ForensicLabMSP
+      ID: ForensicLabMSP
+      MSPDir: crypto-config/peerOrganizations/forensiclab.hot.coc.com/msp
+      Policies:
+        Readers:
+          Type: Signature
+          Rule: "OR('ForensicLabMSP.admin', 'ForensicLabMSP.peer', 'ForensicLabMSP.client')"
+        Writers:
+          Type: Signature
+          Rule: "OR('ForensicLabMSP.admin', 'ForensicLabMSP.client')"
+        Admins:
+          Type: Signature
+          Rule: "OR('ForensicLabMSP.admin')"
+        Endorsement:
+          Type: Signature
+          Rule: "OR('ForensicLabMSP.peer')"
+      AnchorPeers:
+        - Host: peer0.forensiclab.hot.coc.com
+          Port: 8051
+
+  - &Court
+      Name: CourtMSP
+      ID: CourtMSP
+      MSPDir: crypto-config/peerOrganizations/court.hot.coc.com/msp
+      Policies:
+        Readers:
+          Type: Signature
+          Rule: "OR('CourtMSP.admin', 'CourtMSP.client')"
+        Writers:
+          Type: Signature
+          Rule: "OR('CourtMSP.admin', 'CourtMSP.client')"
+        Admins:
+          Type: Signature
+          Rule: "OR('CourtMSP.admin')"
+      # No AnchorPeers - client-only organization
+      # No Endorsement policy - Court submits but doesn't endorse
+
+  - &Auditor
+      Name: AuditorMSP
+      ID: AuditorMSP
+      MSPDir: ../cold-blockchain/crypto-config/peerOrganizations/auditor.cold.coc.com/msp
+      Policies:
+        Readers:
+          Type: Signature
+          Rule: "OR('AuditorMSP.admin', 'AuditorMSP.client')"
+        Writers:
+          Type: Signature
+          Rule: "OR('AuditorMSP.admin', 'AuditorMSP.client')"
+        Admins:
+          Type: Signature
+          Rule: "OR('AuditorMSP.admin')"
+      # No AnchorPeers - client-only, read-only organization on hot chain
+      # No Endorsement policy - Auditor only reads, doesn't endorse
+
+Capabilities:
+  Channel: &ChannelCapabilities
+    V2_0: true
+  Orderer: &OrdererCapabilities
+    V2_0: true
+  Application: &ApplicationCapabilities
+    V2_0: true
+
+Application: &ApplicationDefaults
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    LifecycleEndorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+    Endorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+  Capabilities:
+    <<: *ApplicationCapabilities
+
+Orderer: &OrdererDefaults
+  OrdererType: etcdraft
+  Addresses:
+    - orderer.hot.coc.com:7050
+  BatchTimeout: 2s
+  BatchSize:
+    MaxMessageCount: 10
+    AbsoluteMaxBytes: 99 MB
+    PreferredMaxBytes: 512 KB
+  EtcdRaft:
+    Consenters:
+      - Host: orderer.hot.coc.com
+        Port: 7050
+        ClientTLSCert: crypto-config/ordererOrganizations/hot.coc.com/orderers/orderer.hot.coc.com/tls/server.crt
+        ServerTLSCert: crypto-config/ordererOrganizations/hot.coc.com/orderers/orderer.hot.coc.com/tls/server.crt
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    BlockValidation:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+  Capabilities:
+    <<: *OrdererCapabilities
+
+Channel: &ChannelDefaults
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+  Capabilities:
+    <<: *ChannelCapabilities
+
+Profiles:
+  HotChainGenesis:
+    <<: *ChannelDefaults
+    Orderer:
+      <<: *OrdererDefaults
+      Organizations:
+        - *OrdererOrg
+    Application:
+      <<: *ApplicationDefaults
+      Organizations:
+        - *LawEnforcement
+        - *ForensicLab
+        - *Court
+        - *Auditor
+    Consortiums:
+      HotConsortium:
+        Organizations:
+          - *LawEnforcement
+          - *ForensicLab
+          - *Court
+          - *Auditor
+
+  HotChainChannel:
+    <<: *ChannelDefaults
+    Orderer:
+      <<: *OrdererDefaults
+      Organizations:
+        - *OrdererOrg
+      Capabilities:
+        <<: *OrdererCapabilities
+    Application:
+      <<: *ApplicationDefaults
+      Organizations:
+        - *LawEnforcement
+        - *ForensicLab
+        - *Court
+        - *Auditor
+      Capabilities:
+        <<: *ApplicationCapabilities

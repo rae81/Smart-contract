@@ -1,0 +1,26 @@
+# Cold Blockchain Cryptographic Material Configuration
+# Defines organizations and their certificates
+
+OrdererOrgs:
+  - Name: Orderer
+    Domain: cold.coc.com
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: orderer
+
+PeerOrgs:
+  - Name: Auditor
+    Domain: auditor.cold.coc.com
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+    Users:
+      Count: 2
+
+  - Name: Court
+    Domain: court.cold.coc.com
+    EnableNodeOUs: true
+    Template:
+      Count: 1  # Generate peer certs (we'll use admin/user certs only)
+    Users:
+      Count: 3  # Court admins and users

@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockchain Chain of Custody</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { 
+            max-width: 1600px; 
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        h1 { font-size: 32px; margin-bottom: 10px; }
+        .subtitle { font-size: 16px; opacity: 0.9; }
+        
+        .tabs {
+            display: flex;
+            gap: 0;
+            background: #f8f9fa;
+            border-bottom: 3px solid #667eea;
+            overflow-x: auto;
+        }
+        .tab {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -3px;
+            white-space: nowrap;
+        }
+        .tab:hover { background: #e9ecef; color: #667eea; }
+        .tab.active { background: white; color: #667eea; border-bottom-color: #667eea; }
+        
+        .tab-content { display: none; padding: 40px; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .form-grid { 
+            display: grid; 
+            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+        .form-group { margin-bottom: 20px; }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border 0.3s;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        button {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        
+        .btn-danger { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); }
+        .btn-warning { background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); }
+        .btn-success { background: linear-gradient(135deg, #28a745 0%, #218838 100%); }
+        .btn-sm { padding: 8px 16px; font-size: 14px; margin: 5px; }
+        
+        .evidence-grid {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        }
+        .evidence-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 5px solid #667eea;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .evidence-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .evidence-card h3 { color: #667eea; margin-bottom: 15px; font-size: 18px; }
+        .evidence-detail {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 10px;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        .evidence-detail strong { color: #666; }
+        .evidence-detail span { color: #333; word-break: break-word; }
+        
+        .alert {
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            animation: slideDown 0.3s;
+        }
+        .success { background: #d4edda; color: #155724; border-left: 5px solid #28a745; }
+        .error { background: #f8d7da; color: #721c24; border-left: 5px solid #dc3545; }
+        .loading { text-align: center; padding: 40px; color: #999; font-size: 18px; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .stat-number { font-size: 36px; font-weight: bold; margin-bottom: 5px; }
+        .stat-label { font-size: 14px; opacity: 0.9; }
+        
+        .detail-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+        .detail-box h4 { color: #667eea; margin-bottom: 15px; }
+        .detail-box pre {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            animation: fadeIn 0.3s;
+        }
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 40px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideDown 0.3s;
+        }
+        .close {
+            float: right;
+            font-size: 32px;
+            font-weight: bold;
+            color: #999;
+            cursor: pointer;
+            line-height: 20px;
+        }
+        .close:hover { color: #333; }
+        
+        .case-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-hot { background: #ff6b6b; color: white; }
+        .badge-cold { background: #4ecdc4; color: white; }
+        .badge-open { background: #51cf66; color: white; }
+        .badge-closed { background: #868e96; color: white; }
+        .badge-archived { background: #845ef7; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Blockchain Chain of Custody System</h1>
+            <p class="subtitle">Hot & Cold Blockchain Evidence Management</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('upload')">📤 Upload Evidence</button>
+            <button class="tab" onclick="showTab('view')">📋 View Evidence</button>
+            <button class="tab" onclick="showTab('cases')">📁 Cases</button>
+            <button class="tab" onclick="showTab('details')">🔍 Blockchain Details</button>
+            <button class="tab" onclick="showTab('system')">⚙️ System Status</button>
+        </div>
+        
+        <!-- Upload Tab -->
+        <div id="upload-tab" class="tab-content active">
+            <h2 style="margin-bottom: 30px;">Upload New Evidence</h2>
+            <div id="upload-message"></div>
+            <form class="form-grid" style="max-width: 900px; margin: 0 auto;" onsubmit="uploadEvidence(event)">
+                <div class="form-group">
+                    <label>📎 Evidence File *</label>
+                    <input type="file" name="file" required>
+                </div>
+                <div class="form-group">
+                    <label>📁 Case ID *</label>
+                    <div style="display: flex; gap: 10px;">
+                        <select name="case_id" id="case_id_select" required style="flex: 1;">
+                            <option value="">Loading...</option>
+                        </select>
+                        <button type="button" onclick="openCreateCaseModal()" style="padding: 14px 20px;">+ New</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>📋 Evidence Type *</label>
+                    <select name="evidence_type" required>
+                        <option value="">Select type...</option>
+                        <option value="Document">📄 Document</option>
+                        <option value="Image">🖼️ Image</option>
+                        <option value="Video">🎥 Video</option>
+                        <option value="Audio">🎵 Audio</option>
+                        <option value="Disk Image">💾 Disk Image</option>
+                        <option value="Memory Dump">🧠 Memory Dump</option>
+                        <option value="Other">📦 Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>👤 Collected By *</label>
+                    <input type="text" name="collected_by" placeholder="Officer Name" required>
+                </div>
+                <div class="form-group">
+                    <label>📍 Location *</label>
+                    <input type="text" name="location" placeholder="Evidence Room 1" required>
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label>📝 Description</label>
+                    <textarea name="description" rows="4" placeholder="Evidence description..."></textarea>
+                </div>
+                <div style="grid-column: 1 / -1;">
+                    <button type="submit">🚀 Upload to Blockchain & IPFS</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- View Evidence Tab -->
+        <div id="view-tab" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h2>All Evidence Records</h2>
+                <button onclick="loadEvidence()">🔄 Refresh</button>
+            </div>
+            <div id="evidence-stats" class="stats-grid"></div>
+            <div id="evidence-list"></div>
+        </div>
+        
+        <!-- Cases Tab -->
+        <div id="cases-tab" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h2>All Cases</h2>
+                <div>
+                    <button onclick="openCreateCaseModal()" style="margin-right: 10px;">+ Create New Case</button>
+                    <button onclick="loadCases()">🔄 Refresh</button>
+                </div>
+            </div>
+            <div id="cases-list"></div>
+        </div>
+        
+        <!-- Blockchain Details Tab -->
+        <div id="details-tab" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h2>Blockchain & Storage Details</h2>
+                <button onclick="loadDetails()">🔄 Refresh</button>
+            </div>
+            <div id="blockchain-details"></div>
+        </div>
+        
+        <!-- System Status Tab -->
+        <div id="system-tab" class="tab-content">
+            <h2 style="margin-bottom: 30px;">System Status</h2>
+            <button onclick="loadSystemStatus()" style="margin-bottom: 20px;">🔄 Refresh Status</button>
+            <div id="system-status"></div>
+        </div>
+    </div>
+    
+    <!-- Create Case Modal -->
+    <div id="createCaseModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCreateCaseModal()">&times;</span>
+            <h2 style="margin-bottom: 30px;">Create New Case</h2>
+            <div id="create-case-message"></div>
+            <form onsubmit="createCase(event)">
+                <div class="form-group">
+                    <label>📋 Case Name *</label>
+                    <input type="text" id="new_case_name" placeholder="Investigation Name" required>
+                </div>
+                <div class="form-group">
+                    <label>🔢 Case Number *</label>
+                    <input type="text" id="new_case_number" placeholder="INV-2025-XXX" required>
+                </div>
+                <div class="form-group">
+                    <label>📁 Case Type</label>
+                    <select id="new_case_type">
+                        <option value="General Investigation">General Investigation</option>
+                        <option value="Digital Forensics">Digital Forensics</option>
+                        <option value="Cybercrime">Cybercrime</option>
+                        <option value="Fraud">Fraud</option>
+                        <option value="Drug Investigation">Drug Investigation</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>🏢 Investigating Agency *</label>
+                    <input type="text" id="new_investigating_agency" placeholder="Agency Name" required>
+                </div>
+                <div class="form-group">
+                    <label>👤 Lead Investigator *</label>
+                    <input type="text" id="new_lead_investigator" placeholder="Investigator Name" required>
+                </div>
+                <div class="form-group">
+                    <label>📝 Description</label>
+                    <textarea id="new_description" rows="4" placeholder="Case description..."></textarea>
+                </div>
+                <button type="submit">✅ Create Case</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        async function loadCaseIds() {
+            try {
+                const response = await fetch('/api/cases/ids');
+                const cases = await response.json();
+                const select = document.getElementById('case_id_select');
+                
+                if (cases.length === 0) {
+                    select.innerHTML = '<option value="">No cases - Create one first</option>';
+                    return;
+                }
+                
+                select.innerHTML = '<option value="">Select a case...</option>' + 
+                    cases.map(c => `<option value="${c.case_id}">${c.case_id} - ${c.case_name}</option>`).join('');
+            } catch (error) {
+                console.error('Error loading cases:', error);
+            }
+        }
+        
+        function openCreateCaseModal() {
+            document.getElementById('createCaseModal').style.display = 'block';
+            document.getElementById('create-case-message').innerHTML = '';
+        }
+        
+        function closeCreateCaseModal() {
+            document.getElementById('createCaseModal').style.display = 'none';
+        }
+        
+        async function createCase(e) {
+            e.preventDefault();
+            const msgDiv = document.getElementById('create-case-message');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Creating...';
+            
+            try {
+                const data = {
+                    case_name: document.getElementById('new_case_name').value,
+                    case_number: document.getElementById('new_case_number').value,
+                    case_type: document.getElementById('new_case_type').value,
+                    investigating_agency: document.getElementById('new_investigating_agency').value,
+                    lead_investigator: document.getElementById('new_lead_investigator').value,
+                    description: document.getElementById('new_description').value
+                };
+                
+                const response = await fetch('/api/cases/create', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    msgDiv.innerHTML = `<div class="alert success">✅ Case created: ${result.case_id}</div>`;
+                    e.target.reset();
+                    loadCaseIds();
+                    loadCases();
+                    setTimeout(closeCreateCaseModal, 2000);
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                msgDiv.innerHTML = `<div class="alert error">❌ ${error.message}</div>`;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '✅ Create Case';
+            }
+        }
+        
+        async function archiveCase(caseId) {
+            if (!confirm(`Archive case ${caseId} to Cold Blockchain? This will move all evidence to long-term storage.`)) return;
+            
+            try {
+                const response = await fetch(`/api/cases/archive/${caseId}`, { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`✅ ${data.message}`);
+                    loadCases();
+                    loadEvidence();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                alert(`❌ Error: ${error.message}`);
+            }
+        }
+        
+        async function closeCase(caseId) {
+            if (!confirm(`Close case ${caseId}?`)) return;
+            
+            try {
+                const response = await fetch(`/api/cases/close/${caseId}`, { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`✅ ${data.message}`);
+                    loadCases();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                alert(`❌ Error: ${error.message}`);
+            }
+        }
+        
+        async function reopenCase(caseId) {
+            if (!confirm(`Reopen case ${caseId}?`)) return;
+            
+            try {
+                const response = await fetch(`/api/cases/reopen/${caseId}`, { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`✅ ${data.message}`);
+                    loadCases();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                alert(`❌ Error: ${error.message}`);
+            }
+        }
+        
+        async function deleteCase(caseId) {
+            if (!confirm(`⚠️ DELETE case ${caseId}? This will delete ALL evidence in this case. This action CANNOT be undone!`)) return;
+            if (!confirm(`Are you ABSOLUTELY SURE you want to delete case ${caseId}?`)) return;
+            
+            try {
+                const response = await fetch(`/api/cases/delete/${caseId}`, { method: 'DELETE' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`✅ ${data.message}`);
+                    loadCases();
+                    loadEvidence();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                alert(`❌ Error: ${error.message}`);
+            }
+        }
+        
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            if (tabName === 'view') loadEvidence();
+            if (tabName === 'cases') loadCases();
+            if (tabName === 'details') loadDetails();
+            if (tabName === 'system') loadSystemStatus();
+            if (tabName === 'upload') loadCaseIds();
+        }
+        
+        async function uploadEvidence(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const msgDiv = document.getElementById('upload-message');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Uploading...';
+            msgDiv.innerHTML = '<div class="alert" style="background: #e3f2fd; color: #0277bd;">⏳ Uploading to IPFS and blockchain...</div>';
+            
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    msgDiv.innerHTML = `
+                        <div class="alert success">
+                            <strong>✅ Evidence uploaded successfully!</strong><br><br>
+                            <strong>Evidence ID:</strong> ${data.evidence_id}<br>
+                            <strong>IPFS Hash:</strong> <code>${data.ipfs_hash}</code><br>
+                            <strong>SHA256:</strong> <code>${data.sha256}</code><br>
+                            <strong>Size:</strong> ${formatBytes(data.file_size)}<br>
+                            <strong>View File:</strong> <a href="http://localhost:8080/ipfs/${data.ipfs_hash}" target="_blank">Open in IPFS</a>
+                        </div>
+                    `;
+                    e.target.reset();
+                    loadCaseIds();
+                    setTimeout(() => msgDiv.innerHTML = '', 15000);
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                msgDiv.innerHTML = `<div class="alert error">❌ ${error.message}</div>`;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🚀 Upload to Blockchain & IPFS';
+            }
+        }
+        
+        async function loadEvidence() {
+            const list = document.getElementById('evidence-list');
+            const stats = document.getElementById('evidence-stats');
+            list.innerHTML = '<div class="loading">⏳ Loading...</div>';
+            
+            try {
+                const response = await fetch('/api/evidence');
+                const evidence = await response.json();
+                
+                if (evidence.error) throw new Error(evidence.error);
+                
+                if (evidence.length === 0) {
+                    list.innerHTML = '<div class="empty-state"><div style="font-size:80px">📦</div><h3>No Evidence</h3></div>';
+                    stats.innerHTML = '';
+                    return;
+                }
+                
+                const totalSize = evidence.reduce((sum, e) => sum + (e.file_size || 0), 0);
+                const hotCount = evidence.filter(e => e.blockchain_type === 'hot').length;
+                const coldCount = evidence.filter(e => e.blockchain_type === 'cold').length;
+                
+                stats.innerHTML = `
+                    <div class="stat-card"><div class="stat-number">${evidence.length}</div><div class="stat-label">Total Evidence</div></div>
+                    <div class="stat-card"><div class="stat-number">${hotCount}</div><div class="stat-label">🔥 Hot</div></div>
+                    <div class="stat-card"><div class="stat-number">${coldCount}</div><div class="stat-label">❄️ Cold</div></div>
+                    <div class="stat-card"><div class="stat-number">${formatBytes(totalSize)}</div><div class="stat-label">Storage</div></div>
+                `;
+                
+                list.innerHTML = '<div class="evidence-grid">' + evidence.map(e => `
+                    <div class="evidence-card">
+                        <h3>${e.evidence_id} <span class="badge badge-${e.blockchain_type}">${e.blockchain_type === 'hot' ? '🔥 HOT' : '❄️ COLD'}</span></h3>
+                        <div class="evidence-detail"><strong>📁 Case:</strong><span>${e.case_id}</span></div>
+                        <div class="evidence-detail"><strong>📋 Type:</strong><span>${e.evidence_type}</span></div>
+                        <div class="evidence-detail"><strong>👤 By:</strong><span>${e.collected_by}</span></div>
+                        <div class="evidence-detail"><strong>📍 Location:</strong><span>${e.location}</span></div>
+                        <div class="evidence-detail"><strong>🕐 Time:</strong><span>${new Date(e.collected_timestamp).toLocaleString()}</span></div>
+                        <div class="evidence-detail"><strong>💾 Size:</strong><span>${formatBytes(e.file_size)}</span></div>
+                        <div class="evidence-detail"><strong>🔗 IPFS:</strong><span style="font-family:monospace;font-size:11px">${e.ipfs_hash}</span></div>
+                        <div class="evidence-detail"><strong>🔐 SHA256:</strong><span style="font-family:monospace;font-size:11px">${e.sha256_hash}</span></div>
+                        <div style="display:flex;gap:10px;margin-top:15px">
+                            <button style="flex:1;padding:10px" onclick="window.location.href='/api/download/${e.ipfs_hash}'">⬇️ Download</button>
+                            <button style="flex:1;padding:10px" onclick="window.open('http://localhost:8080/ipfs/${e.ipfs_hash}', '_blank')">👁️ View</button>
+                        </div>
+                    </div>
+                `).join('') + '</div>';
+            } catch (error) {
+                list.innerHTML = `<div class="alert error">❌ ${error.message}</div>`;
+            }
+        }
+        
+        async function loadCases() {
+            const list = document.getElementById('cases-list');
+            list.innerHTML = '<div class="loading">⏳ Loading...</div>';
+            
+            try {
+                const response = await fetch('/api/cases');
+                const cases = await response.json();
+                
+                if (cases.error) throw new Error(cases.error);
+                if (cases.length === 0) {
+                    list.innerHTML = '<div class="empty-state"><div style="font-size:80px">📁</div><h3>No Cases</h3></div>';
+                    return;
+                }
+                
+                list.innerHTML = '<div class="evidence-grid">' + cases.map(c => `
+                    <div class="evidence-card">
+                        <h3>${c.case_name} <span class="badge badge-${c.status}">${c.status.toUpperCase()}</span></h3>
+                        <div class="evidence-detail"><strong>🆔 ID:</strong><span>${c.case_id}</span></div>
+                        <div class="evidence-detail"><strong>📋 Number:</strong><span>${c.case_number}</span></div>
+                        <div class="evidence-detail"><strong>🏢 Agency:</strong><span>${c.investigating_agency}</span></div>
+                        <div class="evidence-detail"><strong>👤 Lead:</strong><span>${c.lead_investigator}</span></div>
+                        <div class="evidence-detail"><strong>📅 Opened:</strong><span>${new Date(c.opened_date).toLocaleDateString()}</span></div>
+                        ${c.closed_date ? `<div class="evidence-detail"><strong>📅 Closed:</strong><span>${new Date(c.closed_date).toLocaleDateString()}</span></div>` : ''}
+                        ${c.description ? `<div class="evidence-detail" style="grid-template-columns:1fr"><strong>📝:</strong><span>${c.description}</span></div>` : ''}
+                        <div class="case-actions">
+                            ${c.status === 'open' ? `
+                                <button class="btn-sm btn-warning" onclick="closeCase('${c.case_id}')">🔒 Close</button>
+                                <button class="btn-sm btn-success" onclick="archiveCase('${c.case_id}')">❄️ Archive to Cold</button>
+                            ` : ''}
+                            ${c.status === 'closed' ? `
+                                <button class="btn-sm btn-success" onclick="reopenCase('${c.case_id}')">🔓 Reopen</button>
+                                <button class="btn-sm btn-success" onclick="archiveCase('${c.case_id}')">❄️ Archive to Cold</button>
+                            ` : ''}
+                            ${c.status === 'archived' ? `
+                                <button class="btn-sm btn-success" onclick="reopenCase('${c.case_id}')">🔓 Reopen</button>
+                            ` : ''}
+                            <button class="btn-sm btn-danger" onclick="deleteCase('${c.case_id}')">🗑️ Delete</button>
+                        </div>
+                    </div>
+                `).join('') + '</div>';
+            } catch (error) {
+                list.innerHTML = `<div class="alert error">❌ ${error.message}</div>`;
+            }
+        }
+        
+        async function loadDetails() {
+            const div = document.getElementById('blockchain-details');
+            div.innerHTML = '<div class="loading">⏳ Loading...</div>';
+            
+            try {
+                const response = await fetch('/api/blockchain/details');
+                const data = await response.json();
+                
+                if (data.error) throw new Error(data.error);
+                
+                div.innerHTML = `
+                    <div class="detail-box">
+                        <h4>🔥 Hot Blockchain</h4>
+                        <p><strong>Status:</strong> ${data.hot_blockchain.status}</p>
+                        <pre>${data.hot_blockchain.info}</pre>
+                    </div>
+                    
+                    <div class="detail-box">
+                        <h4>❄️ Cold Blockchain</h4>
+                        <p><strong>Status:</strong> ${data.cold_blockchain.status}</p>
+                        <pre>${data.cold_blockchain.info}</pre>
+                    </div>
+                    
+                    <div class="detail-box">
+                        <h4>📦 IPFS Storage</h4>
+                        <p><strong>Status:</strong> ${data.ipfs.status}</p>
+                        <p><strong>Gateway:</strong> <a href="http://localhost:8080" target="_blank">http://localhost:8080/ipfs/{hash}</a></p>
+                        <pre>${JSON.stringify(data.ipfs.stats, null, 2)}</pre>
+                    </div>
+                    
+                    <div class="detail-box">
+                        <h4>🗄️ MySQL Database</h4>
+                        <p><strong>Status:</strong> ${data.mysql.status}</p>
+                        <p><strong>phpMyAdmin:</strong> <a href="http://localhost:8081" target="_blank">http://localhost:8081</a></p>
+                        <div class="stats-grid">
+                            <div class="stat-card"><div class="stat-number">${data.mysql.evidence_count}</div><div class="stat-label">Evidence</div></div>
+                            <div class="stat-card"><div class="stat-number">${data.mysql.cases_count}</div><div class="stat-label">Cases</div></div>
+                            <div class="stat-card"><div class="stat-number">${data.mysql.custody_events}</div><div class="stat-label">Events</div></div>
+                            <div class="stat-card"><div class="stat-number">${formatBytes(data.mysql.total_storage)}</div><div class="stat-label">Storage</div></div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                div.innerHTML = `<div class="alert error">❌ ${error.message}</div>`;
+            }
+        }
+        
+        async function loadSystemStatus() {
+            const div = document.getElementById('system-status');
+            div.innerHTML = '<div class="loading">⏳ Loading...</div>';
+            
+            try {
+                const response = await fetch('/api/system/status');
+                const containers = await response.json();
+                
+                if (containers.error) throw new Error(containers.error);
+                
+                div.innerHTML = '<h3 style="margin-bottom:20px">Docker Containers</h3><div class="evidence-grid">' + 
+                    containers.map(c => {
+                        const isRunning = c.status.includes('Up');
+                        return `
+                            <div class="evidence-card" style="border-left-color:${isRunning?'#28a745':'#dc3545'}">
+                                <h3>${c.name}</h3>
+                                <div class="evidence-detail">
+                                    <strong>Status:</strong>
+                                    <span style="color:${isRunning?'#28a745':'#dc3545'}">${isRunning?'✅':'❌'} ${c.status}</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('') + '</div>';
+            } catch (error) {
+                div.innerHTML = `<div class="alert error">❌ ${error.message}</div>`;
+            }
+        }
+        
+        function formatBytes(bytes) {
+            if (!bytes) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+        
+        window.addEventListener('load', () => {
+            loadCaseIds();
+            loadEvidence();
+        });
+        
+        window.onclick = (e) => {
+            if (e.target == document.getElementById('createCaseModal')) {
+                closeCreateCaseModal();
+            }
+        };
+    </script>
+</body>
+</html>

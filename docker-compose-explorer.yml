@@ -1,0 +1,52 @@
+version: '3.7'
+
+networks:
+  hot-chain-network:
+    external: true
+    name: hot-chain-network
+
+services:
+  # PostgreSQL for Explorer
+  explorer-db:
+    image: hyperledger/explorer-db:latest
+    container_name: explorer-db
+    environment:
+      - DATABASE_DATABASE=fabricexplorer
+      - DATABASE_USERNAME=hppoc
+      - DATABASE_PASSWORD=password
+    healthcheck:
+      test: "pg_isready -h localhost -p 5432 -q -U postgres"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - explorer-db-data:/var/lib/postgresql/data
+    networks:
+      - hot-chain-network
+
+  # Hyperledger Explorer
+  explorer:
+    image: hyperledger/explorer:latest
+    container_name: explorer
+    environment:
+      - DATABASE_HOST=explorer-db
+      - DATABASE_DATABASE=fabricexplorer
+      - DATABASE_USERNAME=hppoc
+      - DATABASE_PASSWD=password
+      - LOG_LEVEL_APP=debug
+      - LOG_LEVEL_DB=debug
+      - LOG_LEVEL_CONSOLE=info
+      - LOG_CONSOLE_STDOUT=true
+      - DISCOVERY_AS_LOCALHOST=false
+    volumes:
+      - ./explorer/config:/opt/explorer/app/platform/fabric/config
+      - ./hot-blockchain/crypto-config:/tmp/crypto
+    ports:
+      - 8090:8080
+    depends_on:
+      - explorer-db
+    networks:
+      - hot-chain-network
+
+volumes:
+  explorer-db-data:

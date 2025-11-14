@@ -1,0 +1,18 @@
+# Cold Blockchain Cryptographic Material Configuration
+# Defines organizations and their certificates
+
+OrdererOrgs:
+  - Name: Orderer
+    Domain: cold.coc.com
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: orderer
+    
+PeerOrgs:
+  - Name: Archive
+    Domain: archive.cold.coc.com
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+    Users:
+      Count: 2

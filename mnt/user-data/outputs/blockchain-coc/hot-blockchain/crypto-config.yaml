@@ -1,0 +1,26 @@
+# Hot Blockchain Cryptographic Material Configuration
+# Defines organizations and their certificates
+
+OrdererOrgs:
+  - Name: Orderer
+    Domain: hot.coc.com
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: orderer
+    
+PeerOrgs:
+  - Name: LawEnforcement
+    Domain: lawenforcement.hot.coc.com
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+    Users:
+      Count: 2
+  
+  - Name: ForensicLab
+    Domain: forensiclab.hot.coc.com
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+    Users:
+      Count: 2

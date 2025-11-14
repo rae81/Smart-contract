@@ -1,0 +1,55 @@
+version: '2.1'
+volumes:
+  pgdata-cold:
+  walletstore-cold:
+networks:
+  blockchain-network:
+    name: hot-chain-network
+    external: true
+  cold-blockchain-network:
+    name: cold-chain-network
+    external: true
+services:
+  explorerdb.cold.mynetwork.com:
+    image: hyperledger/explorer-db:latest
+    container_name: explorerdb.cold.mynetwork.com
+    hostname: explorerdb.cold.mynetwork.com
+    environment:
+      - DATABASE_DATABASE=fabricexplorer
+      - DATABASE_USERNAME=hppoc
+      - DATABASE_PASSWORD=password
+    healthcheck:
+      test: "pg_isready -h localhost -p 5432 -q -U postgres"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - pgdata-cold:/var/lib/postgresql/data
+    networks:
+      - cold-blockchain-network
+  explorer.cold.mynetwork.com:
+    image: hyperledger/explorer:latest
+    container_name: explorer.cold.mynetwork.com
+    hostname: explorer.cold.mynetwork.com
+    environment:
+      - DATABASE_HOST=explorerdb.cold.mynetwork.com
+      - DATABASE_DATABASE=fabricexplorer
+      - DATABASE_USERNAME=hppoc
+      - DATABASE_PASSWORD=password
+      - LOG_LEVEL_APP=info
+      - LOG_LEVEL_DB=info
+      - LOG_LEVEL_CONSOLE=debug
+      - LOG_CONSOLE_STDOUT=true
+      - DISCOVERY_AS_LOCALHOST=false
+    volumes:
+      - ./config.json:/opt/explorer/app/platform/fabric/config.json
+      - ./connection-profile:/opt/explorer/app/platform/fabric/connection-profile
+      - /home/omarkaaki/Desktop/files (1)/cold-blockchain/crypto-config:/tmp/crypto-cold
+      - walletstore-cold:/opt/explorer/wallet
+    ports:
+      - 8091:8080
+    depends_on:
+      explorerdb.cold.mynetwork.com:
+        condition: service_healthy
+    networks:
+      - cold-blockchain-network

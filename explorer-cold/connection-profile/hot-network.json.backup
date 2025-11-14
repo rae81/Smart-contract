@@ -1,0 +1,65 @@
+{
+  "name": "hot-network",
+  "version": "1.0.0",
+  "client": {
+    "tlsEnable": true,
+    "adminCredential": {
+      "id": "exploreradmin",
+      "password": "exploreradminpw"
+    },
+    "enableAuthentication": true,
+    "organization": "LawEnforcementMSP",
+    "connection": {
+      "timeout": {
+        "peer": {
+          "endorser": "300"
+        },
+        "orderer": "300"
+      }
+    }
+  },
+  "channels": {
+    "hotchannel": {
+      "peers": {
+        "peer0.lawenforcement.hot.coc.com": {},
+        "peer0.forensiclab.hot.coc.com": {}
+      }
+    }
+  },
+  "organizations": {
+    "LawEnforcementMSP": {
+      "mspid": "LawEnforcementMSP",
+      "adminPrivateKey": {
+        "path": "/tmp/crypto/peerOrganizations/lawenforcement.hot.coc.com/users/Admin@lawenforcement.hot.coc.com/msp/keystore"
+      },
+      "peers": ["peer0.lawenforcement.hot.coc.com"],
+      "signedCert": {
+        "path": "/tmp/crypto/peerOrganizations/lawenforcement.hot.coc.com/users/Admin@lawenforcement.hot.coc.com/msp/signcerts"
+      }
+    },
+    "ForensicLabMSP": {
+      "mspid": "ForensicLabMSP",
+      "adminPrivateKey": {
+        "path": "/tmp/crypto/peerOrganizations/forensiclab.hot.coc.com/users/Admin@forensiclab.hot.coc.com/msp/keystore"
+      },
+      "peers": ["peer0.forensiclab.hot.coc.com"],
+      "signedCert": {
+        "path": "/tmp/crypto/peerOrganizations/forensiclab.hot.coc.com/users/Admin@forensiclab.hot.coc.com/msp/signcerts"
+      }
+    }
+  },
+  "peers": {
+    "peer0.lawenforcement.hot.coc.com": {
+      "tlsCACerts": {
+        "path": "/tmp/crypto/peerOrganizations/lawenforcement.hot.coc.com/peers/peer0.lawenforcement.hot.coc.com/tls/ca.crt"
+      },
+      "url": "grpcs://peer0.lawenforcement.hot.coc.com:7051"
+    },
+    "peer0.forensiclab.hot.coc.com": {
+      "tlsCACerts": {
+        "path": "/tmp/crypto/peerOrganizations/forensiclab.hot.coc.com/peers/peer0.forensiclab.hot.coc.com/tls/ca.crt"
+      },
+      "url": "grpcs://peer0.forensiclab.hot.coc.com:8051"
+    }
+  }
+}

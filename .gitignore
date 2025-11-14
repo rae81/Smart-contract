@@ -1,27 +1,45 @@
-# Binaries
-prv-service/prv-service
-chaincode/chaincode
-*.exe
+webapp/webapp.log
 
-# Generated gRPC
-prv-service/*.pb.go
-prv-service/*_grpc.pb.go
+# Compiled chaincode binaries
+hot-blockchain/chaincode/hot-chaincode
+cold-blockchain/chaincode/cold-chaincode
 
-# Vendor
-chaincode/vendor/
+# Generated certificates and MSP materials (contain private keys)
+organizations/
+hot-blockchain/crypto-config/
+cold-blockchain/crypto-config/
+hot-blockchain/channel-artifacts/
+cold-blockchain/channel-artifacts/
 
-# Packages
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Enclave data
+/tmp/enclave-data/
+enclave-data/
+
+# Docker volumes
 *.tar.gz
 
 # IDE
 .vscode/
 .idea/
 *.swp
+*.swo
+*~
+
+# Logs
+*.log
 
 # OS
 .DS_Store
-
-# Temp
-*.log
-prv-config.env
-permit.json
+Thumbs.db

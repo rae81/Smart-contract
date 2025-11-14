@@ -1,0 +1,156 @@
+# Cold Blockchain Channel Configuration
+# Defines channel profiles and policies for archival storage
+
+Organizations:
+  - &OrdererOrg
+      Name: OrdererMSP
+      ID: OrdererMSP
+      MSPDir: crypto-config/ordererOrganizations/cold.coc.com/msp
+      Policies:
+        Readers:
+          Type: Signature
+          Rule: "OR('OrdererMSP.member')"
+        Writers:
+          Type: Signature
+          Rule: "OR('OrdererMSP.member')"
+        Admins:
+          Type: Signature
+          Rule: "OR('OrdererMSP.admin')"
+      OrdererEndpoints:
+        - orderer.cold.coc.com:7150
+
+  - &Auditor
+      Name: AuditorMSP
+      ID: AuditorMSP
+      MSPDir: crypto-config/peerOrganizations/auditor.cold.coc.com/msp
+      Policies:
+        Readers:
+          Type: Signature
+          Rule: "OR('AuditorMSP.admin', 'AuditorMSP.peer', 'AuditorMSP.client')"
+        Writers:
+          Type: Signature
+          Rule: "OR('AuditorMSP.admin', 'AuditorMSP.client')"
+        Admins:
+          Type: Signature
+          Rule: "OR('AuditorMSP.admin')"
+        Endorsement:
+          Type: Signature
+          Rule: "OR('AuditorMSP.peer')"
+      AnchorPeers:
+        - Host: peer0.auditor.cold.coc.com
+          Port: 9051
+
+  - &Court
+      Name: CourtMSP
+      ID: CourtMSP
+      MSPDir: crypto-config/peerOrganizations/court.cold.coc.com/msp
+      Policies:
+        Readers:
+          Type: Signature
+          Rule: "OR('CourtMSP.admin', 'CourtMSP.client')"
+        Writers:
+          Type: Signature
+          Rule: "OR('CourtMSP.admin', 'CourtMSP.client')"
+        Admins:
+          Type: Signature
+          Rule: "OR('CourtMSP.admin')"
+
+Capabilities:
+  Channel: &ChannelCapabilities
+    V2_0: true
+  Orderer: &OrdererCapabilities
+    V2_0: true
+  Application: &ApplicationCapabilities
+    V2_0: true
+
+Application: &ApplicationDefaults
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    LifecycleEndorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+    Endorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+  Capabilities:
+    <<: *ApplicationCapabilities
+
+Orderer: &OrdererDefaults
+  OrdererType: etcdraft
+  Addresses:
+    - orderer.cold.coc.com:7150
+  EtcdRaft:
+    Consenters:
+      - Host: orderer.cold.coc.com
+        Port: 7150
+        ClientTLSCert: crypto-config/ordererOrganizations/cold.coc.com/orderers/orderer.cold.coc.com/tls/server.crt
+        ServerTLSCert: crypto-config/ordererOrganizations/cold.coc.com/orderers/orderer.cold.coc.com/tls/server.crt
+  BatchTimeout: 2s
+  BatchSize:
+    MaxMessageCount: 10
+    AbsoluteMaxBytes: 99 MB
+    PreferredMaxBytes: 512 KB
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    BlockValidation:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+  Capabilities:
+    <<: *OrdererCapabilities
+
+Channel: &ChannelDefaults
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+  Capabilities:
+    <<: *ChannelCapabilities
+
+Profiles:
+  ColdChainGenesis:
+    <<: *ChannelDefaults
+    Orderer:
+      <<: *OrdererDefaults
+      Organizations:
+        - *OrdererOrg
+      Capabilities: *OrdererCapabilities
+    Application:
+      <<: *ApplicationDefaults
+      Organizations:
+        - *Auditor
+        - *Court
+      Capabilities: *ApplicationCapabilities
+
+  ColdChainChannel:
+    Consortium: SampleConsortium
+    <<: *ChannelDefaults
+    Application:
+      <<: *ApplicationDefaults
+      Organizations:
+        - *Auditor
+        - *Court
+      Capabilities: *ApplicationCapabilities
