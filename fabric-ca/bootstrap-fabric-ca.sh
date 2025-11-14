@@ -138,14 +138,6 @@ db:
   tls:
     enabled: false
 
-bccsp:
-  default: SW
-  sw:
-    hash: SHA2
-    security: 256
-    filekeystore:
-      keystore: msp/keystore
-
 affiliations:
   ${ORG_NAME}:
     - department1
