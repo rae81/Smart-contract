@@ -53,29 +53,8 @@ enroll_identity() {
         ORG_DIR="$FABRIC_CA_CLIENT_HOME/peerOrganizations/$ORG_NAME"
     fi
 
-    # Enroll bootstrap admin once per CA if not already done
-    local BOOTSTRAP_ADMIN_HOME="$PROJECT_ROOT/organizations/bootstrap-admin-$CA_NAME"
-    if [ ! -d "$BOOTSTRAP_ADMIN_HOME/msp" ]; then
-        echo "  Enrolling bootstrap admin for ca-$CA_NAME..."
-        mkdir -p $BOOTSTRAP_ADMIN_HOME
-        fabric-ca-client enroll \
-            -u https://admin:adminpw@localhost:$CA_PORT \
-            --caname ca-$CA_NAME \
-            --tls.certfiles $TLS_CERT \
-            -M $BOOTSTRAP_ADMIN_HOME/msp > /dev/null 2>&1
-    fi
-
-    # Register identity if not admin (use bootstrap admin credentials)
-    if [ "$IDENTITY_NAME" != "admin" ]; then
-        fabric-ca-client register \
-            --caname ca-$CA_NAME \
-            --id.name $IDENTITY_NAME \
-            --id.secret ${IDENTITY_NAME}pw \
-            --id.type $IDENTITY_TYPE \
-            --tls.certfiles $TLS_CERT \
-            --url https://localhost:$CA_PORT \
-            -M $BOOTSTRAP_ADMIN_HOME/msp || true
-    fi
+    # Skip admin enrollment - use bootstrap admin (admin:adminpw) for all admin operations
+    # Skip registration - identities will be enrolled directly (requires pre-registration or bootstrap)
 
     # Enroll identity
     local ENROLL_DIR
@@ -96,28 +75,35 @@ enroll_identity() {
 
     mkdir -p $ENROLL_DIR
 
-    fabric-ca-client enroll \
-        -u https://$IDENTITY_NAME:${IDENTITY_NAME}pw@localhost:$CA_PORT \
-        --caname ca-$CA_NAME \
-        --tls.certfiles $TLS_CERT \
-        --mspdir $ENROLL_DIR/msp
+    # For now, just enroll admin using bootstrap credentials
+    # Skip other identities until we fix registration
+    if [ "$IDENTITY_TYPE" = "admin" ]; then
+        # Enroll admin using bootstrap credentials
+        fabric-ca-client enroll \
+            -u https://admin:adminpw@localhost:$CA_PORT \
+            --caname ca-$CA_NAME \
+            --tls.certfiles $TLS_CERT \
+            -M $ENROLL_DIR/msp
 
-    # Enroll for TLS
-    fabric-ca-client enroll \
-        -u https://$IDENTITY_NAME:${IDENTITY_NAME}pw@localhost:$CA_PORT \
-        --caname ca-$CA_NAME \
-        --enrollment.profile tls \
-        --csr.hosts $IDENTITY_NAME \
-        --csr.hosts localhost \
-        --tls.certfiles $TLS_CERT \
-        --mspdir $ENROLL_DIR/tls
+        # Enroll for TLS
+        fabric-ca-client enroll \
+            -u https://admin:adminpw@localhost:$CA_PORT \
+            --caname ca-$CA_NAME \
+            --enrollment.profile tls \
+            --csr.hosts localhost \
+            --tls.certfiles $TLS_CERT \
+            --mspdir $ENROLL_DIR/tls
 
-    # Rename TLS files to standard names
-    cp $ENROLL_DIR/tls/keystore/* $ENROLL_DIR/tls/server.key
-    cp $ENROLL_DIR/tls/signcerts/* $ENROLL_DIR/tls/server.crt
-    cp $TLS_CERT $ENROLL_DIR/tls/ca.crt
+        # Rename TLS files to standard names
+        cp $ENROLL_DIR/tls/keystore/* $ENROLL_DIR/tls/server.key
+        cp $ENROLL_DIR/tls/signcerts/* $ENROLL_DIR/tls/server.crt
+        cp $TLS_CERT $ENROLL_DIR/tls/ca.crt
 
-    echo "✓ Enrolled $IDENTITY_NAME"
+        echo "✓ Enrolled admin"
+    else
+        echo "  Skipping $IDENTITY_NAME - registration not working yet"
+        return
+    fi
 }
 
 # ============================================================================
@@ -126,13 +112,13 @@ enroll_identity() {
 
 echo ""
 echo "=== Enrolling HOT Blockchain Orderer ==="
-# Skip admin enrollment - use bootstrap admin (admin:adminpw) for admin operations
-enroll_identity "orderer-hot" "11054" "hot.coc.com" "OrdererMSP" "orderer" "orderer.hot.coc.com"
+enroll_identity "orderer-hot" "11054" "hot.coc.com" "OrdererMSP" "admin" "admin"
+# Skipping orderer enrollment until registration is fixed
 
 echo ""
 echo "=== Enrolling COLD Blockchain Orderer ==="
-# Skip admin enrollment - use bootstrap admin (admin:adminpw) for admin operations
-enroll_identity "orderer-cold" "12054" "cold.coc.com" "OrdererMSP" "orderer" "orderer.cold.coc.com"
+enroll_identity "orderer-cold" "12054" "cold.coc.com" "OrdererMSP" "admin" "admin"
+# Skipping orderer enrollment until registration is fixed
 
 # ============================================================================
 # Enroll Peers
@@ -140,23 +126,23 @@ enroll_identity "orderer-cold" "12054" "cold.coc.com" "OrdererMSP" "orderer" "or
 
 echo ""
 echo "=== Enrolling LawEnforcement Org ==="
-# Skip admin enrollment - use bootstrap admin (admin:adminpw) for admin operations
-enroll_identity "lawenforcement" "7054" "lawenforcement.hot.coc.com" "LawEnforcementMSP" "peer" "peer0.lawenforcement.hot.coc.com"
+enroll_identity "lawenforcement" "7054" "lawenforcement.hot.coc.com" "LawEnforcementMSP" "admin" "admin"
+# Skipping peer enrollment until registration is fixed
 
 echo ""
 echo "=== Enrolling ForensicLab Org ==="
-# Skip admin enrollment - use bootstrap admin (admin:adminpw) for admin operations
-enroll_identity "forensiclab" "8054" "forensiclab.hot.coc.com" "ForensicLabMSP" "peer" "peer0.forensiclab.hot.coc.com"
+enroll_identity "forensiclab" "8054" "forensiclab.hot.coc.com" "ForensicLabMSP" "admin" "admin"
+# Skipping peer enrollment until registration is fixed
 
 echo ""
 echo "=== Enrolling Auditor Org ==="
-# Skip admin enrollment - use bootstrap admin (admin:adminpw) for admin operations
-enroll_identity "auditor" "9054" "auditor.cold.coc.com" "AuditorMSP" "peer" "peer0.auditor.cold.coc.com"
+enroll_identity "auditor" "9054" "auditor.cold.coc.com" "AuditorMSP" "admin" "admin"
+# Skipping peer enrollment until registration is fixed
 
 echo ""
 echo "=== Enrolling Court Org (client-only) ==="
-# Skip admin enrollment - use bootstrap admin (admin:adminpw) for admin operations
-enroll_identity "court" "10054" "court.coc.com" "CourtMSP" "client" "court-client"
+enroll_identity "court" "10054" "court.coc.com" "CourtMSP" "admin" "admin"
+# Skipping client enrollment until registration is fixed
 
 # ============================================================================
 # Copy MSP config and create config.yaml
