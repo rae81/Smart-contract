@@ -189,7 +189,7 @@ services:
         ipv4_address: 172.20.0.30
     ports:
       - "4001:4001"     # Swarm
-      - "5001:5001"     # API (conflict - need to change)
+      - "5003:5001"     # API (changed from 5001 to avoid conflict with enclave)
       - "8080:8080"     # Gateway
     volumes:
       - ipfs-hot-data:/data/ipfs

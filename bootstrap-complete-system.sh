@@ -129,15 +129,23 @@ docker ps --format "table {{.Names}}\t{{.Status}}" | grep -E "(enclave|ca-|peer0
 echo ""
 
 # ============================================================================
-# Step 7: Start IPFS Nodes
+# Step 7: Enroll IPFS Nodes with mTLS Certificates
 # ============================================================================
-echo "=== Step 7: Starting IPFS nodes ==="
+echo "=== Step 7: Enrolling IPFS nodes with mTLS certificates ==="
+chmod +x scripts/enroll-ipfs-mtls.sh
+./scripts/enroll-ipfs-mtls.sh
+
+echo ""
+
+# ============================================================================
+# Step 7.5: Start IPFS Nodes
+# ============================================================================
+echo "=== Step 7.5: Starting IPFS nodes with mTLS ==="
 docker-compose -f docker-compose-full.yml up -d ipfs-hot ipfs-cold
 
 sleep 5
 
-# Configure IPFS nodes (TODO: Add mTLS cert configuration)
-echo "✓ IPFS nodes started"
+echo "✓ IPFS nodes started with mTLS certificates"
 
 echo ""
 
