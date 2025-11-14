@@ -66,7 +66,7 @@ echo ""
 # ============================================================================
 echo "=== Step 2: Bootstrapping Fabric CA Servers ==="
 chmod +x fabric-ca/bootstrap-fabric-ca.sh
-./fabric-ca/bootstrap-fabric-ca.sh
+ENCLAVE_URL=http://localhost:5001 ./fabric-ca/bootstrap-fabric-ca.sh
 
 echo ""
 
