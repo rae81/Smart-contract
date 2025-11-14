@@ -45,10 +45,13 @@ enroll_identity() {
 
     local CA_URL="https://admin:adminpw@localhost:$CA_PORT"
     local TLS_CERT="$PROJECT_ROOT/fabric-ca/$CA_NAME/ca-chain.pem"  # Use full chain (intermediate + root CA)
-    local MSP_DIR="$FABRIC_CA_CLIENT_HOME/peerOrganizations/$ORG_NAME/msp"
 
-    if [ "$IDENTITY_TYPE" = "orderer" ]; then
-        MSP_DIR="$FABRIC_CA_CLIENT_HOME/ordererOrganizations/$ORG_NAME/msp"
+    # Determine organization directory (no /msp suffix - that's added later for specific paths)
+    local ORG_DIR
+    if [ "$IDENTITY_TYPE" = "orderer" ] || [[ "$CA_NAME" == *"orderer"* ]]; then
+        ORG_DIR="$FABRIC_CA_CLIENT_HOME/ordererOrganizations/$ORG_NAME"
+    else
+        ORG_DIR="$FABRIC_CA_CLIENT_HOME/peerOrganizations/$ORG_NAME"
     fi
 
     # Register identity if not admin
@@ -60,7 +63,7 @@ enroll_identity() {
             --id.type $IDENTITY_TYPE \
             --tls.certfiles $TLS_CERT \
             --url $CA_URL \
-            --mspdir $MSP_DIR/users/Admin@$ORG_NAME/msp || true
+            --mspdir $ORG_DIR/users/Admin@$ORG_NAME/msp || true
     fi
 
     # Enroll identity
