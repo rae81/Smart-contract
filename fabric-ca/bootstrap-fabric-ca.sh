@@ -60,10 +60,11 @@ for ORG_SPEC in "${ORGS[@]}"; do
     # Fabric CA's BCCSP fully supports ECDSA and requires PKCS#8 encoding
     openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out "$CA_DIR/ca-key.pem"
 
-    # Create CSR for intermediate CA
+    # Create CSR for intermediate CA with SANs including localhost
     openssl req -new -key "$CA_DIR/ca-key.pem" \
         -out "$CA_DIR/ca-csr.pem" \
-        -subj "/C=US/ST=California/L=San Francisco/O=DFIR Blockchain/OU=${ORG_NAME^^}MSP/CN=ca.${ORG_NAME}.coc.com"
+        -subj "/C=US/ST=California/L=San Francisco/O=DFIR Blockchain/OU=${ORG_NAME^^}MSP/CN=ca.${ORG_NAME}.coc.com" \
+        -addext "subjectAltName=DNS:ca.${ORG_NAME}.coc.com,DNS:ca-${ORG_NAME},DNS:localhost"
 
     # Get CSR content
     CSR_CONTENT=$(cat "$CA_DIR/ca-csr.pem")

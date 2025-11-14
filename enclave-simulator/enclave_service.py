@@ -297,6 +297,13 @@ class EnclaveSimulator:
             critical=True,
         )
 
+        # Copy SAN extension from CSR if present
+        try:
+            san_ext = csr.extensions.get_extension_for_oid(x509.oid.ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+            cert = cert.add_extension(san_ext.value, critical=False)
+        except x509.ExtensionNotFound:
+            pass  # No SAN in CSR, that's okay
+
         # Add key usage based on type
         if cert_type == "orderer":
             cert = cert.add_extension(
