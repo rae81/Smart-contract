@@ -53,18 +53,28 @@ enroll_identity() {
         ORG_DIR="$FABRIC_CA_CLIENT_HOME/peerOrganizations/$ORG_NAME"
     fi
 
+    # Enroll bootstrap admin once per CA if not already done
+    local BOOTSTRAP_ADMIN_HOME="$PROJECT_ROOT/organizations/bootstrap-admin-$CA_NAME"
+    if [ ! -d "$BOOTSTRAP_ADMIN_HOME/msp" ]; then
+        echo "  Enrolling bootstrap admin for ca-$CA_NAME..."
+        mkdir -p $BOOTSTRAP_ADMIN_HOME
+        fabric-ca-client enroll \
+            -u https://admin:adminpw@localhost:$CA_PORT \
+            --caname ca-$CA_NAME \
+            --tls.certfiles $TLS_CERT \
+            -M $BOOTSTRAP_ADMIN_HOME/msp > /dev/null 2>&1
+    fi
+
     # Register identity if not admin (use bootstrap admin credentials)
     if [ "$IDENTITY_NAME" != "admin" ]; then
-        # Temporarily use a temp home dir so it uses password auth instead of looking for enrollment info
-        local TEMP_HOME=$(mktemp -d)
-        FABRIC_CA_CLIENT_HOME=$TEMP_HOME fabric-ca-client register \
+        fabric-ca-client register \
             --caname ca-$CA_NAME \
             --id.name $IDENTITY_NAME \
             --id.secret ${IDENTITY_NAME}pw \
             --id.type $IDENTITY_TYPE \
             --tls.certfiles $TLS_CERT \
-            --url https://admin:adminpw@localhost:$CA_PORT || true
-        rm -rf $TEMP_HOME
+            --url https://localhost:$CA_PORT \
+            -M $BOOTSTRAP_ADMIN_HOME/msp || true
     fi
 
     # Enroll identity
