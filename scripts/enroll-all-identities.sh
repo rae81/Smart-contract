@@ -53,21 +53,15 @@ enroll_identity() {
         ORG_DIR="$FABRIC_CA_CLIENT_HOME/peerOrganizations/$ORG_NAME"
     fi
 
-    # Register identity if not admin (authenticate with admin's certificate)
+    # Register identity if not admin (use bootstrap admin credentials)
     if [ "$IDENTITY_NAME" != "admin" ]; then
-        # Set FABRIC_CA_CLIENT_HOME to admin's directory for certificate-based auth
-        export FABRIC_CA_CLIENT_HOME="$ORG_DIR/users/Admin@$ORG_NAME"
-
         fabric-ca-client register \
             --caname ca-$CA_NAME \
             --id.name $IDENTITY_NAME \
             --id.secret ${IDENTITY_NAME}pw \
             --id.type $IDENTITY_TYPE \
             --tls.certfiles $TLS_CERT \
-            --url https://localhost:$CA_PORT || true
-
-        # Restore original FABRIC_CA_CLIENT_HOME
-        export FABRIC_CA_CLIENT_HOME="$PROJECT_ROOT/organizations"
+            --url https://admin:adminpw@localhost:$CA_PORT || true
     fi
 
     # Enroll identity
