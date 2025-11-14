@@ -56,9 +56,9 @@ for ORG_SPEC in "${ORGS[@]}"; do
     CA_DIR="$PROJECT_ROOT/fabric-ca/$ORG_NAME"
     mkdir -p "$CA_DIR"
 
-    # Generate CA server private key using ECDSA P-256 (required by Fabric CA 1.5.5 BCCSP)
-    # Fabric CA's BCCSP does not support RSA key import, but fully supports ECDSA
-    openssl ecparam -genkey -name prime256v1 -out "$CA_DIR/ca-key.pem"
+    # Generate CA server private key using ECDSA P-256 in PKCS#8 format
+    # Fabric CA's BCCSP fully supports ECDSA and requires PKCS#8 encoding
+    openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out "$CA_DIR/ca-key.pem"
 
     # Create CSR for intermediate CA
     openssl req -new -key "$CA_DIR/ca-key.pem" \
