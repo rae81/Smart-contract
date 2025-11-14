@@ -113,12 +113,12 @@ enroll_identity() {
 
 echo ""
 echo "=== Enrolling HOT Blockchain Orderer ==="
-enroll_identity "orderer-hot" "11054" "hot.coc.com" "OrdererMSP" "admin" "admin"
+# Skip admin enrollment - use bootstrap admin (admin:adminpw) for admin operations
 enroll_identity "orderer-hot" "11054" "hot.coc.com" "OrdererMSP" "orderer" "orderer.hot.coc.com"
 
 echo ""
 echo "=== Enrolling COLD Blockchain Orderer ==="
-enroll_identity "orderer-cold" "12054" "cold.coc.com" "OrdererMSP" "admin" "admin"
+# Skip admin enrollment - use bootstrap admin (admin:adminpw) for admin operations
 enroll_identity "orderer-cold" "12054" "cold.coc.com" "OrdererMSP" "orderer" "orderer.cold.coc.com"
 
 # ============================================================================
@@ -127,22 +127,22 @@ enroll_identity "orderer-cold" "12054" "cold.coc.com" "OrdererMSP" "orderer" "or
 
 echo ""
 echo "=== Enrolling LawEnforcement Org ==="
-enroll_identity "lawenforcement" "7054" "lawenforcement.hot.coc.com" "LawEnforcementMSP" "admin" "admin"
+# Skip admin enrollment - use bootstrap admin (admin:adminpw) for admin operations
 enroll_identity "lawenforcement" "7054" "lawenforcement.hot.coc.com" "LawEnforcementMSP" "peer" "peer0.lawenforcement.hot.coc.com"
 
 echo ""
 echo "=== Enrolling ForensicLab Org ==="
-enroll_identity "forensiclab" "8054" "forensiclab.hot.coc.com" "ForensicLabMSP" "admin" "admin"
+# Skip admin enrollment - use bootstrap admin (admin:adminpw) for admin operations
 enroll_identity "forensiclab" "8054" "forensiclab.hot.coc.com" "ForensicLabMSP" "peer" "peer0.forensiclab.hot.coc.com"
 
 echo ""
 echo "=== Enrolling Auditor Org ==="
-enroll_identity "auditor" "9054" "auditor.cold.coc.com" "AuditorMSP" "admin" "admin"
+# Skip admin enrollment - use bootstrap admin (admin:adminpw) for admin operations
 enroll_identity "auditor" "9054" "auditor.cold.coc.com" "AuditorMSP" "peer" "peer0.auditor.cold.coc.com"
 
 echo ""
 echo "=== Enrolling Court Org (client-only) ==="
-enroll_identity "court" "10054" "court.coc.com" "CourtMSP" "admin" "admin"
+# Skip admin enrollment - use bootstrap admin (admin:adminpw) for admin operations
 enroll_identity "court" "10054" "court.coc.com" "CourtMSP" "client" "court-client"
 
 # ============================================================================
