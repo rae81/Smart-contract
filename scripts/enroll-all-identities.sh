@@ -70,7 +70,12 @@ enroll_identity() {
     elif [ "$IDENTITY_TYPE" = "orderer" ]; then
         ENROLL_DIR="$FABRIC_CA_CLIENT_HOME/ordererOrganizations/$ORG_NAME/orderers/$IDENTITY_NAME"
     elif [ "$IDENTITY_TYPE" = "admin" ]; then
-        ENROLL_DIR="$FABRIC_CA_CLIENT_HOME/peerOrganizations/$ORG_NAME/users/Admin@$ORG_NAME"
+        # Determine if this is an orderer admin or peer admin based on CA name
+        if [[ "$CA_NAME" == *"orderer"* ]]; then
+            ENROLL_DIR="$FABRIC_CA_CLIENT_HOME/ordererOrganizations/$ORG_NAME/users/Admin@$ORG_NAME"
+        else
+            ENROLL_DIR="$FABRIC_CA_CLIENT_HOME/peerOrganizations/$ORG_NAME/users/Admin@$ORG_NAME"
+        fi
     else
         ENROLL_DIR="$FABRIC_CA_CLIENT_HOME/peerOrganizations/$ORG_NAME/users/$IDENTITY_NAME"
     fi
