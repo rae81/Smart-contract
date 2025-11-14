@@ -55,13 +55,16 @@ enroll_identity() {
 
     # Register identity if not admin (use bootstrap admin credentials)
     if [ "$IDENTITY_NAME" != "admin" ]; then
-        fabric-ca-client register \
+        # Temporarily use a temp home dir so it uses password auth instead of looking for enrollment info
+        local TEMP_HOME=$(mktemp -d)
+        FABRIC_CA_CLIENT_HOME=$TEMP_HOME fabric-ca-client register \
             --caname ca-$CA_NAME \
             --id.name $IDENTITY_NAME \
             --id.secret ${IDENTITY_NAME}pw \
             --id.type $IDENTITY_TYPE \
             --tls.certfiles $TLS_CERT \
             --url https://admin:adminpw@localhost:$CA_PORT || true
+        rm -rf $TEMP_HOME
     fi
 
     # Enroll identity
