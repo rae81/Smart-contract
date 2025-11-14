@@ -56,8 +56,8 @@ for ORG_SPEC in "${ORGS[@]}"; do
     CA_DIR="$PROJECT_ROOT/fabric-ca/$ORG_NAME"
     mkdir -p "$CA_DIR"
 
-    # Generate CA server private key
-    openssl genrsa -out "$CA_DIR/ca-key.pem" 2048
+    # Generate CA server private key in PKCS#8 format (required by Fabric CA 1.5.5)
+    openssl genpkey -algorithm RSA -out "$CA_DIR/ca-key.pem" -pkeyopt rsa_keygen_bits:2048
 
     # Create CSR for intermediate CA
     openssl req -new -key "$CA_DIR/ca-key.pem" \
