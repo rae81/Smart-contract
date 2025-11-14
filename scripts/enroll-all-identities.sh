@@ -44,7 +44,7 @@ enroll_identity() {
     echo "Enrolling $IDENTITY_NAME ($IDENTITY_TYPE) with ca-$CA_NAME..."
 
     local CA_URL="https://admin:adminpw@localhost:$CA_PORT"
-    local TLS_CERT="$PROJECT_ROOT/fabric-ca/$CA_NAME/ca-cert.pem"
+    local TLS_CERT="$PROJECT_ROOT/fabric-ca/$CA_NAME/ca-chain.pem"  # Use full chain (intermediate + root CA)
     local MSP_DIR="$FABRIC_CA_CLIENT_HOME/peerOrganizations/$ORG_NAME/msp"
 
     if [ "$IDENTITY_TYPE" = "orderer" ]; then
