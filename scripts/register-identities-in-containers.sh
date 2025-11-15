@@ -28,7 +28,7 @@ enroll_admin_in_container() {
     echo "  Enrolling admin in $CONTAINER_NAME..."
     docker exec $CONTAINER_NAME sh -c \
         "FABRIC_CA_CLIENT_HOME=/tmp/ca-admin fabric-ca-client enroll \
-        -u https://admin:adminpw@localhost:7054 \
+        -u https://admin:adminpw@127.0.0.1:7054 \
         --caname ca-$CA_NAME \
         --tls.certfiles /etc/hyperledger/fabric-ca-server/ca-chain.pem"
 
@@ -65,7 +65,7 @@ register_in_container() {
         --id.secret ${IDENTITY_NAME}pw \
         --id.type $IDENTITY_TYPE \
         --tls.certfiles /etc/hyperledger/fabric-ca-server/ca-chain.pem \
-        -u https://localhost:7054"
+        -u https://127.0.0.1:7054"
 
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✓ Registered $IDENTITY_NAME successfully${NC}"
