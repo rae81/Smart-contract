@@ -111,6 +111,9 @@ enroll_identity() {
             --mspdir $ENROLL_DIR/msp
 
         # Enroll for TLS
+        # Clean old TLS files to prevent key mismatch
+        rm -rf $ENROLL_DIR/tls 2>/dev/null || true
+
         fabric-ca-client enroll \
             -u https://$IDENTITY_NAME:${IDENTITY_NAME}pw@localhost:$CA_PORT \
             --caname ca-$CA_NAME \
