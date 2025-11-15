@@ -26,13 +26,15 @@ register_in_container() {
 
     # Run registration command inside the container using bootstrap admin credentials
     # Inside container, CA chain is at /etc/hyperledger/fabric-ca-server/ca-chain.pem
-    docker exec $CONTAINER_NAME fabric-ca-client register \
+    # Use empty FABRIC_CA_CLIENT_HOME to force password auth (no cert lookup)
+    docker exec $CONTAINER_NAME sh -c \
+        "FABRIC_CA_CLIENT_HOME=/tmp/ca-client-$RANDOM fabric-ca-client register \
         --caname ca-$CA_NAME \
         --id.name $IDENTITY_NAME \
         --id.secret ${IDENTITY_NAME}pw \
         --id.type $IDENTITY_TYPE \
         --tls.certfiles /etc/hyperledger/fabric-ca-server/ca-chain.pem \
-        -u https://admin:adminpw@localhost:7054
+        -u https://admin:adminpw@localhost:7054"
 
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✓ Registered $IDENTITY_NAME successfully${NC}"
