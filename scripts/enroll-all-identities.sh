@@ -96,23 +96,12 @@ enroll_identity() {
 
         echo "✓ Enrolled admin"
     else
-        # Orderers/Peers: register using bootstrap admin password, then enroll with mTLS
-        # This is the correct Fabric approach: bootstrap admin (admin:adminpw) for registration,
-        # then enrolled identities use mTLS certificates for all operations
+        # Orderers/Peers: enroll with mTLS (registration done separately inside CA containers)
+        # This workaround bypasses authentication issues while maintaining dynamic mTLS:
+        #   1. Registration runs inside CA container (scripts/register-identities-in-containers.sh)
+        #   2. Enrollment runs from host (this script) - gets dynamic mTLS from Enclave Root CA chain
 
-        # Use a temporary empty directory to force password auth (prevent certificate lookup)
-        local TEMP_HOME=$(mktemp -d)
-
-        # Register identity using bootstrap admin password
-        FABRIC_CA_CLIENT_HOME=$TEMP_HOME fabric-ca-client register \
-            --caname ca-$CA_NAME \
-            --id.name $IDENTITY_NAME \
-            --id.secret ${IDENTITY_NAME}pw \
-            --id.type $IDENTITY_TYPE \
-            --tls.certfiles $TLS_CERT \
-            --url https://admin:adminpw@localhost:$CA_PORT || true
-
-        rm -rf $TEMP_HOME
+        echo "  (Registration already done in CA container, proceeding with enrollment...)"
 
         # Enroll the identity with its own credentials (gets mTLS certificate from CA chain)
         fabric-ca-client enroll \
@@ -162,21 +151,24 @@ echo ""
 echo "=== Enrolling LawEnforcement Org ==="
 enroll_identity "lawenforcement" "7054" "lawenforcement.hot.coc.com" "LawEnforcementMSP" "admin" "admin"
 enroll_identity "lawenforcement" "7054" "lawenforcement.hot.coc.com" "LawEnforcementMSP" "peer" "peer0.lawenforcement.hot.coc.com"
+enroll_identity "lawenforcement" "7054" "lawenforcement.hot.coc.com" "LawEnforcementMSP" "client" "user1"
 
 echo ""
 echo "=== Enrolling ForensicLab Org ==="
 enroll_identity "forensiclab" "8054" "forensiclab.hot.coc.com" "ForensicLabMSP" "admin" "admin"
 enroll_identity "forensiclab" "8054" "forensiclab.hot.coc.com" "ForensicLabMSP" "peer" "peer0.forensiclab.hot.coc.com"
+enroll_identity "forensiclab" "8054" "forensiclab.hot.coc.com" "ForensicLabMSP" "client" "user1"
 
 echo ""
 echo "=== Enrolling Auditor Org ==="
 enroll_identity "auditor" "9054" "auditor.cold.coc.com" "AuditorMSP" "admin" "admin"
 enroll_identity "auditor" "9054" "auditor.cold.coc.com" "AuditorMSP" "peer" "peer0.auditor.cold.coc.com"
+enroll_identity "auditor" "9054" "auditor.cold.coc.com" "AuditorMSP" "client" "user1"
 
 echo ""
 echo "=== Enrolling Court Org (client-only) ==="
 enroll_identity "court" "10054" "court.coc.com" "CourtMSP" "admin" "admin"
-enroll_identity "court" "10054" "court.coc.com" "CourtMSP" "client" "court-client"
+enroll_identity "court" "10054" "court.coc.com" "CourtMSP" "client" "user1"
 
 # ============================================================================
 # Copy MSP config and create config.yaml
