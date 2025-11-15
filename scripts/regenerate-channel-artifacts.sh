@@ -15,21 +15,24 @@ mkdir -p channel-artifacts
 # Generate channel genesis block (Fabric 2.5 uses channel participation, not system channel)
 docker run --rm -v "$(pwd):/work" -w /work \
   hyperledger/fabric-tools:2.5 \
-  configtxgen -profile HotChainChannel \
+  configtxgen -configPath /work \
+  -profile HotChainChannel \
   -outputBlock channel-artifacts/hotchannel.block \
   -channelID hotchannel
 
 # Generate anchor peer updates
 docker run --rm -v "$(pwd):/work" -w /work \
   hyperledger/fabric-tools:2.5 \
-  configtxgen -profile HotChainChannel \
+  configtxgen -configPath /work \
+  -profile HotChainChannel \
   -outputAnchorPeersUpdate channel-artifacts/LawEnforcementMSPanchors.tx \
   -channelID hotchannel \
   -asOrg LawEnforcement
 
 docker run --rm -v "$(pwd):/work" -w /work \
   hyperledger/fabric-tools:2.5 \
-  configtxgen -profile HotChainChannel \
+  configtxgen -configPath /work \
+  -profile HotChainChannel \
   -outputAnchorPeersUpdate channel-artifacts/ForensicLabMSPanchors.tx \
   -channelID hotchannel \
   -asOrg ForensicLab
@@ -43,14 +46,16 @@ mkdir -p channel-artifacts
 # Generate channel genesis block
 docker run --rm -v "$(pwd):/work" -w /work \
   hyperledger/fabric-tools:2.5 \
-  configtxgen -profile ColdChainChannel \
+  configtxgen -configPath /work \
+  -profile ColdChainChannel \
   -outputBlock channel-artifacts/coldchannel.block \
   -channelID coldchannel
 
 # Generate anchor peer update for Auditor
 docker run --rm -v "$(pwd):/work" -w /work \
   hyperledger/fabric-tools:2.5 \
-  configtxgen -profile ColdChainChannel \
+  configtxgen -configPath /work \
+  -profile ColdChainChannel \
   -outputAnchorPeersUpdate channel-artifacts/AuditorMSPanchors.tx \
   -channelID coldchannel \
   -asOrg Auditor
