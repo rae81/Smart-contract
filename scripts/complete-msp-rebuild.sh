@@ -14,13 +14,21 @@ cd "$PROJECT_ROOT"
 
 # Step 1: Stop all blockchain containers
 echo ""
-echo "[1/7] Stopping all blockchain containers..."
+echo "[1/8] Stopping all blockchain containers..."
 docker-compose -f docker-compose-hot.yml -f docker-compose-cold.yml down 2>/dev/null || true
 echo "✓ Containers stopped"
 
-# Step 2: Clean up ALL old MSP directories
+# Step 2: Start CA servers
 echo ""
-echo "[2/7] Cleaning up old MSP directories..."
+echo "[2/8] Starting CA servers..."
+docker-compose -f docker-compose-full.yml up -d ca-lawenforcement ca-forensiclab ca-auditor ca-court ca-orderer-hot ca-orderer-cold
+echo "✓ CA servers started"
+echo "Waiting for CA servers to initialize..."
+sleep 10
+
+# Step 3: Clean up ALL old MSP directories
+echo ""
+echo "[3/8] Cleaning up old MSP directories..."
 rm -rf organizations/ordererOrganizations/*/orderers/*/msp
 rm -rf organizations/ordererOrganizations/*/users/*/msp
 rm -rf organizations/ordererOrganizations/*/msp
@@ -29,15 +37,15 @@ rm -rf organizations/peerOrganizations/*/users/*/msp
 rm -rf organizations/peerOrganizations/*/msp
 echo "✓ Old MSPs removed"
 
-# Step 3: Re-enroll all identities
+# Step 4: Re-enroll all identities
 echo ""
-echo "[3/7] Re-enrolling all identities with correct CA certificates..."
+echo "[4/8] Re-enrolling all identities with correct CA certificates..."
 ./scripts/enroll-all-identities.sh
 echo "✓ All identities re-enrolled"
 
-# Step 4: Update ALL MSP directories with correct CA certificates
+# Step 5: Update ALL MSP directories with correct CA certificates
 echo ""
-echo "[4/7] Updating all MSP CA certificates..."
+echo "[5/8] Updating all MSP CA certificates..."
 
 # Function to update CA certs in MSP directory
 update_msp_ca_certs() {
@@ -88,15 +96,15 @@ update_msp_ca_certs "organizations/peerOrganizations/court.coc.com/users/Admin@c
 
 echo "✓ All MSP CA certificates updated with correct SKI/AKI certs"
 
-# Step 5: Apply MSP config fixes
+# Step 6: Apply MSP config fixes
 echo ""
-echo "[5/7] Applying MSP configuration (config.yaml and admincerts)..."
+echo "[6/8] Applying MSP configuration (config.yaml and admincerts)..."
 ./scripts/fix-msp-config.sh
 echo "✓ MSP configuration applied"
 
-# Step 6: Regenerate channel artifacts
+# Step 7: Regenerate channel artifacts
 echo ""
-echo "[6/7] Regenerating channel artifacts..."
+echo "[7/8] Regenerating channel artifacts..."
 mkdir -p channel-artifacts
 
 export FABRIC_CFG_PATH="$PROJECT_ROOT/hot-blockchain"
@@ -107,9 +115,9 @@ configtxgen -profile ColdChainGenesis -outputBlock ./channel-artifacts/coldchann
 
 echo "✓ Channel artifacts generated"
 
-# Step 7: Start the blockchain network
+# Step 8: Start the blockchain network
 echo ""
-echo "[7/7] Starting blockchain network..."
+echo "[8/8] Starting blockchain network..."
 docker-compose -f docker-compose-hot.yml -f docker-compose-cold.yml up -d
 
 echo ""
