@@ -90,9 +90,9 @@ enroll_identity() {
             --mspdir $ENROLL_DIR/tls
 
         # Rename TLS files to standard names
-        cp $ENROLL_DIR/tls/keystore/* $ENROLL_DIR/tls/server.key
-        cp $ENROLL_DIR/tls/signcerts/* $ENROLL_DIR/tls/server.crt
-        cp $TLS_CERT $ENROLL_DIR/tls/ca.crt
+        cp $(ls $ENROLL_DIR/tls/keystore/* | head -1) $ENROLL_DIR/tls/server.key 2>/dev/null || true
+        cp $(ls $ENROLL_DIR/tls/signcerts/* | head -1) $ENROLL_DIR/tls/server.crt 2>/dev/null || true
+        cp $TLS_CERT $ENROLL_DIR/tls/ca.crt 2>/dev/null || true
 
         echo "✓ Enrolled admin"
     else
@@ -121,9 +121,9 @@ enroll_identity() {
             --mspdir $ENROLL_DIR/tls
 
         # Rename TLS files to standard names
-        cp $ENROLL_DIR/tls/keystore/* $ENROLL_DIR/tls/server.key
-        cp $ENROLL_DIR/tls/signcerts/* $ENROLL_DIR/tls/server.crt
-        cp $TLS_CERT $ENROLL_DIR/tls/ca.crt
+        cp $(ls $ENROLL_DIR/tls/keystore/* | head -1) $ENROLL_DIR/tls/server.key 2>/dev/null || true
+        cp $(ls $ENROLL_DIR/tls/signcerts/* | head -1) $ENROLL_DIR/tls/server.crt 2>/dev/null || true
+        cp $TLS_CERT $ENROLL_DIR/tls/ca.crt 2>/dev/null || true
 
         echo "✓ Enrolled $IDENTITY_NAME"
     fi
