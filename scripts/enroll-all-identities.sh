@@ -96,31 +96,25 @@ enroll_identity() {
 
         echo "✓ Enrolled admin"
     else
-        # Orderers/Peers: register using admin's mTLS certificate, then enroll
-        # Determine admin's user directory (fabric-ca-client looks for msp/ subdirectory)
-        local ADMIN_USER_DIR
-        if [[ "$CA_NAME" == *"orderer"* ]]; then
-            ADMIN_USER_DIR="$FABRIC_CA_CLIENT_HOME/ordererOrganizations/$ORG_NAME/users/Admin@$ORG_NAME"
-        else
-            ADMIN_USER_DIR="$FABRIC_CA_CLIENT_HOME/peerOrganizations/$ORG_NAME/users/Admin@$ORG_NAME"
-        fi
+        # Orderers/Peers: register using bootstrap admin password, then enroll with mTLS
+        # This is the correct Fabric approach: bootstrap admin (admin:adminpw) for registration,
+        # then enrolled identities use mTLS certificates for all operations
 
-        # Temporarily set FABRIC_CA_CLIENT_HOME to admin's directory for certificate auth
-        export FABRIC_CA_CLIENT_HOME="$ADMIN_USER_DIR"
+        # Use a temporary empty directory to force password auth (prevent certificate lookup)
+        local TEMP_HOME=$(mktemp -d)
 
-        # Register identity using admin's mTLS certificate (no password)
-        fabric-ca-client register \
+        # Register identity using bootstrap admin password
+        FABRIC_CA_CLIENT_HOME=$TEMP_HOME fabric-ca-client register \
             --caname ca-$CA_NAME \
             --id.name $IDENTITY_NAME \
             --id.secret ${IDENTITY_NAME}pw \
             --id.type $IDENTITY_TYPE \
             --tls.certfiles $TLS_CERT \
-            --url https://localhost:$CA_PORT || true
+            --url https://admin:adminpw@localhost:$CA_PORT || true
 
-        # Restore original FABRIC_CA_CLIENT_HOME
-        export FABRIC_CA_CLIENT_HOME="$PROJECT_ROOT/organizations"
+        rm -rf $TEMP_HOME
 
-        # Enroll the identity with its own credentials
+        # Enroll the identity with its own credentials (gets mTLS certificate from CA chain)
         fabric-ca-client enroll \
             -u https://$IDENTITY_NAME:${IDENTITY_NAME}pw@localhost:$CA_PORT \
             --caname ca-$CA_NAME \
