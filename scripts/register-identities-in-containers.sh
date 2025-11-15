@@ -30,7 +30,7 @@ enroll_admin_in_container() {
         "FABRIC_CA_CLIENT_HOME=/tmp/ca-admin fabric-ca-client enroll \
         -u https://admin:adminpw@localhost:7054 \
         --caname ca-$CA_NAME \
-        --tls.certfiles /etc/hyperledger/fabric-ca-server/ca-chain.pem" > /dev/null 2>&1
+        --tls.certfiles /etc/hyperledger/fabric-ca-server/ca-chain.pem"
 
     if [ $? -eq 0 ]; then
         echo -e "  ${GREEN}✓ Admin enrolled${NC}"
