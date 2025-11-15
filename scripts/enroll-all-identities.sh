@@ -97,13 +97,16 @@ enroll_identity() {
         echo "✓ Enrolled admin"
     else
         # Orderers/Peers: register using admin's mTLS certificate, then enroll
-        # Determine admin MSP directory to use for certificate auth
-        local ADMIN_MSP_DIR
+        # Determine admin's user directory (fabric-ca-client looks for msp/ subdirectory)
+        local ADMIN_USER_DIR
         if [[ "$CA_NAME" == *"orderer"* ]]; then
-            ADMIN_MSP_DIR="$FABRIC_CA_CLIENT_HOME/ordererOrganizations/$ORG_NAME/users/Admin@$ORG_NAME/msp"
+            ADMIN_USER_DIR="$FABRIC_CA_CLIENT_HOME/ordererOrganizations/$ORG_NAME/users/Admin@$ORG_NAME"
         else
-            ADMIN_MSP_DIR="$FABRIC_CA_CLIENT_HOME/peerOrganizations/$ORG_NAME/users/Admin@$ORG_NAME/msp"
+            ADMIN_USER_DIR="$FABRIC_CA_CLIENT_HOME/peerOrganizations/$ORG_NAME/users/Admin@$ORG_NAME"
         fi
+
+        # Temporarily set FABRIC_CA_CLIENT_HOME to admin's directory for certificate auth
+        export FABRIC_CA_CLIENT_HOME="$ADMIN_USER_DIR"
 
         # Register identity using admin's mTLS certificate (no password)
         fabric-ca-client register \
@@ -112,8 +115,10 @@ enroll_identity() {
             --id.secret ${IDENTITY_NAME}pw \
             --id.type $IDENTITY_TYPE \
             --tls.certfiles $TLS_CERT \
-            --url https://localhost:$CA_PORT \
-            -M $ADMIN_MSP_DIR || true
+            --url https://localhost:$CA_PORT || true
+
+        # Restore original FABRIC_CA_CLIENT_HOME
+        export FABRIC_CA_CLIENT_HOME="$PROJECT_ROOT/organizations"
 
         # Enroll the identity with its own credentials
         fabric-ca-client enroll \
