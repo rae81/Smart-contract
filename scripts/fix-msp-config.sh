@@ -18,19 +18,7 @@ create_msp_config() {
 
     cat > "$MSP_DIR/config.yaml" <<EOF
 NodeOUs:
-  Enable: true
-  ClientOUIdentifier:
-    Certificate: cacerts/$(ls $MSP_DIR/cacerts | head -1)
-    OrganizationalUnitIdentifier: client
-  PeerOUIdentifier:
-    Certificate: cacerts/$(ls $MSP_DIR/cacerts | head -1)
-    OrganizationalUnitIdentifier: peer
-  AdminOUIdentifier:
-    Certificate: cacerts/$(ls $MSP_DIR/cacerts | head -1)
-    OrganizationalUnitIdentifier: admin
-  OrdererOUIdentifier:
-    Certificate: cacerts/$(ls $MSP_DIR/cacerts | head -1)
-    OrganizationalUnitIdentifier: orderer
+  Enable: false
 EOF
     echo "  ✓ Created config.yaml for $ORG_NAME"
 }
