@@ -9,6 +9,9 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 echo "=== Regenerating HOT blockchain channel artifacts ==="
 cd "$PROJECT_ROOT/hot-blockchain"
 
+# Create channel-artifacts directory if it doesn't exist
+mkdir -p channel-artifacts
+
 # Generate channel genesis block (Fabric 2.5 uses channel participation, not system channel)
 docker run --rm -v "$(pwd):/work" -w /work \
   hyperledger/fabric-tools:2.5 \
@@ -33,6 +36,9 @@ docker run --rm -v "$(pwd):/work" -w /work \
 
 echo -e "\n=== Regenerating COLD blockchain channel artifacts ==="
 cd "$PROJECT_ROOT/cold-blockchain"
+
+# Create channel-artifacts directory if it doesn't exist
+mkdir -p channel-artifacts
 
 # Generate channel genesis block
 docker run --rm -v "$(pwd):/work" -w /work \
