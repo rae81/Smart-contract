@@ -19,6 +19,7 @@ NC='\033[0m' # No Color
 enroll_admin_in_container() {
     local CONTAINER_NAME=$1
     local CA_NAME=$2
+    local CA_PORT=$3
 
     # Check if admin already enrolled in this container
     if docker exec $CONTAINER_NAME test -f /tmp/ca-admin/msp/signcerts/cert.pem 2>/dev/null; then
@@ -28,7 +29,7 @@ enroll_admin_in_container() {
     echo "  Enrolling admin in $CONTAINER_NAME..."
     docker exec $CONTAINER_NAME sh -c \
         "FABRIC_CA_CLIENT_HOME=/tmp/ca-admin fabric-ca-client enroll \
-        -u https://admin:adminpw@127.0.0.1:7054 \
+        -u https://admin:adminpw@127.0.0.1:$CA_PORT \
         --caname ca-$CA_NAME \
         --tls.certfiles /etc/hyperledger/fabric-ca-server/ca-chain.pem"
 
@@ -45,11 +46,12 @@ enroll_admin_in_container() {
 register_in_container() {
     local CONTAINER_NAME=$1
     local CA_NAME=$2
-    local IDENTITY_NAME=$3
-    local IDENTITY_TYPE=$4
+    local CA_PORT=$3
+    local IDENTITY_NAME=$4
+    local IDENTITY_TYPE=$5
 
     # Ensure admin is enrolled first
-    enroll_admin_in_container "$CONTAINER_NAME" "$CA_NAME"
+    enroll_admin_in_container "$CONTAINER_NAME" "$CA_NAME" "$CA_PORT"
     if [ $? -ne 0 ]; then
         echo -e "${RED}✗ Cannot register - admin enrollment failed${NC}"
         return 1
@@ -65,7 +67,7 @@ register_in_container() {
         --id.secret ${IDENTITY_NAME}pw \
         --id.type $IDENTITY_TYPE \
         --tls.certfiles /etc/hyperledger/fabric-ca-server/ca-chain.pem \
-        -u https://127.0.0.1:7054"
+        -u https://127.0.0.1:$CA_PORT"
 
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✓ Registered $IDENTITY_NAME successfully${NC}"
@@ -77,26 +79,25 @@ register_in_container() {
 }
 
 echo "=== Registering Hot Orderer Identities ==="
-register_in_container "ca-orderer-hot" "orderer-hot" "orderer.hot.coc.com" "orderer"
+register_in_container "ca-orderer-hot" "orderer-hot" "11054" "orderer.hot.coc.com" "orderer"
 
 echo "=== Registering Cold Orderer Identities ==="
-register_in_container "ca-orderer-cold" "orderer-cold" "orderer.cold.coc.com" "orderer"
+register_in_container "ca-orderer-cold" "orderer-cold" "12054" "orderer.cold.coc.com" "orderer"
 
 echo "=== Registering Law Enforcement Identities ==="
-register_in_container "ca-lawenforcement" "lawenforcement" "peer0.lawenforcement.hot.coc.com" "peer"
-register_in_container "ca-lawenforcement" "lawenforcement" "user1" "client"
+register_in_container "ca-lawenforcement" "lawenforcement" "7054" "peer0.lawenforcement.hot.coc.com" "peer"
+register_in_container "ca-lawenforcement" "lawenforcement" "7054" "user1" "client"
 
 echo "=== Registering Forensic Lab Identities ==="
-register_in_container "ca-forensiclab" "forensiclab" "peer0.forensiclab.hot.coc.com" "peer"
-register_in_container "ca-forensiclab" "forensiclab" "user1" "client"
+register_in_container "ca-forensiclab" "forensiclab" "8054" "peer0.forensiclab.hot.coc.com" "peer"
+register_in_container "ca-forensiclab" "forensiclab" "8054" "user1" "client"
 
 echo "=== Registering Auditor Identities ==="
-register_in_container "ca-auditor" "auditor" "peer0.auditor.cold.coc.com" "peer"
-register_in_container "ca-auditor" "auditor" "user1" "client"
+register_in_container "ca-auditor" "auditor" "9054" "peer0.auditor.cold.coc.com" "peer"
+register_in_container "ca-auditor" "auditor" "9054" "user1" "client"
 
 echo "=== Registering Court Identities ==="
-register_in_container "ca-court" "court" "peer0.court.cold.coc.com" "peer"
-register_in_container "ca-court" "court" "user1" "client"
+register_in_container "ca-court" "court" "10054" "user1" "client"
 
 echo ""
 echo "=============================================="
