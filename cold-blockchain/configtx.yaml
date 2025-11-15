@@ -37,23 +37,6 @@ Organizations:
         - Host: peer0.auditor.cold.coc.com
           Port: 9051
 
-  - &Court
-      Name: CourtMSP
-      ID: CourtMSP
-      MSPDir: ../organizations/peerOrganizations/court.coc.com/msp
-      Policies:
-        Readers:
-          Type: Signature
-          Rule: "OR('CourtMSP.admin', 'CourtMSP.client')"
-        Writers:
-          Type: Signature
-          Rule: "OR('CourtMSP.admin', 'CourtMSP.client')"
-        Admins:
-          Type: Signature
-          Rule: "OR('CourtMSP.admin')"
-      # No AnchorPeers - client-only organization
-      # No Endorsement policy - Court submits but doesn't endorse
-
 Capabilities:
   Channel: &ChannelCapabilities
     V2_0: true
