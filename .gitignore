@@ -43,3 +43,4 @@ enclave-data/
 # OS
 .DS_Store
 Thumbs.db
+channel-artifacts/
