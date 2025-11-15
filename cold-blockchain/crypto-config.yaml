@@ -18,7 +18,7 @@ PeerOrgs:
       Count: 2
 
   - Name: Court
-    Domain: court.cold.coc.com
+    Domain: court.coc.com
     EnableNodeOUs: true
     Template:
       Count: 1  # Generate peer certs (we'll use admin/user certs only)
