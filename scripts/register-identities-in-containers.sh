@@ -15,6 +15,32 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
+# Function to enroll admin in CA container (only once per container)
+enroll_admin_in_container() {
+    local CONTAINER_NAME=$1
+    local CA_NAME=$2
+
+    # Check if admin already enrolled in this container
+    if docker exec $CONTAINER_NAME test -f /tmp/ca-admin/msp/signcerts/cert.pem 2>/dev/null; then
+        return 0
+    fi
+
+    echo "  Enrolling admin in $CONTAINER_NAME..."
+    docker exec $CONTAINER_NAME sh -c \
+        "FABRIC_CA_CLIENT_HOME=/tmp/ca-admin fabric-ca-client enroll \
+        -u https://admin:adminpw@localhost:7054 \
+        --caname ca-$CA_NAME \
+        --tls.certfiles /etc/hyperledger/fabric-ca-server/ca-chain.pem" > /dev/null 2>&1
+
+    if [ $? -eq 0 ]; then
+        echo -e "  ${GREEN}✓ Admin enrolled${NC}"
+        return 0
+    else
+        echo -e "  ${RED}✗ Admin enrollment failed${NC}"
+        return 1
+    fi
+}
+
 # Function to register identity inside CA container
 register_in_container() {
     local CONTAINER_NAME=$1
@@ -22,20 +48,16 @@ register_in_container() {
     local IDENTITY_NAME=$3
     local IDENTITY_TYPE=$4
 
+    # Ensure admin is enrolled first
+    enroll_admin_in_container "$CONTAINER_NAME" "$CA_NAME"
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}✗ Cannot register - admin enrollment failed${NC}"
+        return 1
+    fi
+
     echo "Registering $IDENTITY_NAME in $CONTAINER_NAME..."
 
-    # First, enroll admin inside container if not already enrolled
-    # This creates the admin certificate needed for registration
-    docker exec $CONTAINER_NAME sh -c \
-        "if [ ! -f /tmp/ca-admin/msp/signcerts/cert.pem ]; then
-            FABRIC_CA_CLIENT_HOME=/tmp/ca-admin fabric-ca-client enroll \
-                -u https://admin:adminpw@localhost:7054 \
-                --caname ca-$CA_NAME \
-                --tls.certfiles /etc/hyperledger/fabric-ca-server/ca-chain.pem \
-                -M /tmp/ca-admin/msp > /dev/null 2>&1
-        fi" || true
-
-    # Now register using the enrolled admin credentials
+    # Register using the enrolled admin credentials
     docker exec $CONTAINER_NAME sh -c \
         "FABRIC_CA_CLIENT_HOME=/tmp/ca-admin fabric-ca-client register \
         --caname ca-$CA_NAME \
