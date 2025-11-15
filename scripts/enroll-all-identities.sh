@@ -96,17 +96,26 @@ enroll_identity() {
 
         echo "✓ Enrolled admin"
     else
-        # Orderers/Peers: register using bootstrap admin, then enroll
-        # Register identity using bootstrap admin credentials
+        # Orderers/Peers: register using admin's mTLS certificate, then enroll
+        # Determine admin MSP directory to use for certificate auth
+        local ADMIN_MSP_DIR
+        if [[ "$CA_NAME" == *"orderer"* ]]; then
+            ADMIN_MSP_DIR="$FABRIC_CA_CLIENT_HOME/ordererOrganizations/$ORG_NAME/users/Admin@$ORG_NAME/msp"
+        else
+            ADMIN_MSP_DIR="$FABRIC_CA_CLIENT_HOME/peerOrganizations/$ORG_NAME/users/Admin@$ORG_NAME/msp"
+        fi
+
+        # Register identity using admin's mTLS certificate (no password)
         fabric-ca-client register \
             --caname ca-$CA_NAME \
             --id.name $IDENTITY_NAME \
             --id.secret ${IDENTITY_NAME}pw \
             --id.type $IDENTITY_TYPE \
             --tls.certfiles $TLS_CERT \
-            --url https://admin:adminpw@localhost:$CA_PORT || true
+            --url https://localhost:$CA_PORT \
+            -M $ADMIN_MSP_DIR || true
 
-        # Enroll the identity
+        # Enroll the identity with its own credentials
         fabric-ca-client enroll \
             -u https://$IDENTITY_NAME:${IDENTITY_NAME}pw@localhost:$CA_PORT \
             --caname ca-$CA_NAME \
