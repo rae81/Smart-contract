@@ -27,9 +27,12 @@ enroll_admin_in_container() {
     fi
 
     echo "  Enrolling admin in $CONTAINER_NAME..."
+    # Add hosts entry so certificate hostname resolves to localhost
+    # CA cert is issued for container hostname, we need to resolve it to 127.0.0.1
     docker exec $CONTAINER_NAME sh -c \
-        "FABRIC_CA_CLIENT_HOME=/tmp/ca-admin fabric-ca-client enroll \
-        -u https://admin:adminpw@127.0.0.1:$CA_PORT \
+        "echo '127.0.0.1 $CONTAINER_NAME' >> /etc/hosts && \
+        FABRIC_CA_CLIENT_HOME=/tmp/ca-admin fabric-ca-client enroll \
+        -u https://admin:adminpw@$CONTAINER_NAME:$CA_PORT \
         --caname ca-$CA_NAME \
         --tls.certfiles /etc/hyperledger/fabric-ca-server/ca-chain.pem"
 
@@ -59,7 +62,7 @@ register_in_container() {
 
     echo "Registering $IDENTITY_NAME in $CONTAINER_NAME..."
 
-    # Register using the enrolled admin credentials
+    # Register using the enrolled admin credentials (hosts entry already added during enrollment)
     docker exec $CONTAINER_NAME sh -c \
         "FABRIC_CA_CLIENT_HOME=/tmp/ca-admin fabric-ca-client register \
         --caname ca-$CA_NAME \
@@ -67,7 +70,7 @@ register_in_container() {
         --id.secret ${IDENTITY_NAME}pw \
         --id.type $IDENTITY_TYPE \
         --tls.certfiles /etc/hyperledger/fabric-ca-server/ca-chain.pem \
-        -u https://127.0.0.1:$CA_PORT"
+        -u https://$CONTAINER_NAME:$CA_PORT"
 
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✓ Registered $IDENTITY_NAME successfully${NC}"
