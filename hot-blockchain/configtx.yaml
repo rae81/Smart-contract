@@ -61,7 +61,7 @@ Organizations:
   - &Court
       Name: CourtMSP
       ID: CourtMSP
-      MSPDir: ../organizations/peerOrganizations/court.hot.coc.com/msp
+      MSPDir: ../organizations/peerOrganizations/court.coc.com/msp
       Policies:
         Readers:
           Type: Signature
