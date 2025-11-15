@@ -116,6 +116,26 @@ add_admin_certs "$COURT_ORG_MSP" \
     "court"
 
 echo ""
+echo "=== Fixing Admin User MSP directories ==="
+
+# Fix admin users for each organization
+for USER_MSP in "$ORGS_DIR"/peerOrganizations/*/users/Admin@*/msp \
+                "$ORGS_DIR"/ordererOrganizations/*/users/Admin@*/msp; do
+    if [ -d "$USER_MSP" ]; then
+        ORG_NAME=$(basename $(dirname $(dirname $(dirname "$USER_MSP"))))
+        create_msp_config "$USER_MSP" "admin user for $ORG_NAME"
+
+        # Add admin cert to admincerts directory
+        CERT_FILE="$USER_MSP/signcerts/cert.pem"
+        if [ -f "$CERT_FILE" ]; then
+            mkdir -p "$USER_MSP/admincerts"
+            cp "$CERT_FILE" "$USER_MSP/admincerts/"
+            echo "  ✓ Added admincerts for admin user in $ORG_NAME"
+        fi
+    fi
+done
+
+echo ""
 echo "==============================================="
 echo "✓ MSP Configuration Fixed"
 echo "==============================================="
