@@ -157,6 +157,5 @@ Profiles:
       <<: *ApplicationDefaults
       Organizations:
         - *Auditor
-        - *Court
       Capabilities:
         <<: *ApplicationCapabilities
