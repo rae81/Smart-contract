@@ -114,13 +114,23 @@ echo ""
 echo "[8/9] Regenerating channel artifacts..."
 mkdir -p channel-artifacts
 
+# Generate genesis blocks
 export FABRIC_CFG_PATH="$PROJECT_ROOT/hot-blockchain"
 configtxgen -profile HotChainGenesis -outputBlock ./channel-artifacts/hotchannel.block -channelID hotchannel
 
 export FABRIC_CFG_PATH="$PROJECT_ROOT/cold-blockchain"
 configtxgen -profile ColdChainGenesis -outputBlock ./channel-artifacts/coldchannel.block -channelID coldchannel
 
-echo "✓ Channel artifacts generated"
+# Generate anchor peer update transactions
+echo "Generating anchor peer update transactions..."
+export FABRIC_CFG_PATH="$PROJECT_ROOT/hot-blockchain"
+configtxgen -profile HotChainChannel -outputAnchorPeersUpdate ./channel-artifacts/LawEnforcementMSPanchors.tx -channelID hotchannel -asOrg LawEnforcementMSP
+configtxgen -profile HotChainChannel -outputAnchorPeersUpdate ./channel-artifacts/ForensicLabMSPanchors.tx -channelID hotchannel -asOrg ForensicLabMSP
+
+export FABRIC_CFG_PATH="$PROJECT_ROOT/cold-blockchain"
+configtxgen -profile ColdChainChannel -outputAnchorPeersUpdate ./channel-artifacts/AuditorMSPanchors.tx -channelID coldchannel -asOrg AuditorMSP
+
+echo "✓ Channel artifacts and anchor peer transactions generated"
 
 # Step 9: Start the blockchain network
 echo ""
