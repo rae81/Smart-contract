@@ -140,12 +140,10 @@ Profiles:
       <<: *ApplicationDefaults
       Organizations:
         - *Auditor
-        - *Court
     Consortiums:
       ColdConsortium:
         Organizations:
           - *Auditor
-          - *Court
 
   ColdChainChannel:
     <<: *ChannelDefaults
