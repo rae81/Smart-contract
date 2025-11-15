@@ -91,8 +91,8 @@ services:
     command: peer node start
     volumes:
       - /var/run/docker.sock:/host/var/run/docker.sock
-      - ./organizations/peerOrganizations/auditor.cold.coc.com/peers/peer0.auditor.cold.coc.com/msp:/etc/hyperledger/fabric/msp
-      - ./organizations/peerOrganizations/auditor.cold.coc.com/peers/peer0.auditor.cold.coc.com/tls:/etc/hyperledger/fabric/tls
+      - ./organizations/peerOrganizations/auditor.cold.coc.com/peers/peer0.auditor.cold.coc.com/msp:/var/hyperledger/peer/msp
+      - ./organizations/peerOrganizations/auditor.cold.coc.com/peers/peer0.auditor.cold.coc.com/tls:/var/hyperledger/peer/tls
       - peer0.auditor.cold.coc.com:/var/hyperledger/production
     ports:
       - 9051:9051
