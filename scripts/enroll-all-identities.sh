@@ -144,6 +144,31 @@ enroll_identity "orderer-cold" "12054" "cold.coc.com" "OrdererMSP" "admin" "admi
 enroll_identity "orderer-cold" "12054" "cold.coc.com" "OrdererMSP" "orderer" "orderer.cold.coc.com"
 
 # ============================================================================
+# Create Organization-level MSP directories from Admin enrollments
+# ============================================================================
+
+echo ""
+echo "=== Setting up organization-level MSP directories ==="
+
+# Hot orderer organization MSP
+mkdir -p "$FABRIC_CA_CLIENT_HOME/ordererOrganizations/hot.coc.com/msp"
+cp -r "$FABRIC_CA_CLIENT_HOME/ordererOrganizations/hot.coc.com/users/Admin@hot.coc.com/msp/cacerts" \
+   "$FABRIC_CA_CLIENT_HOME/ordererOrganizations/hot.coc.com/msp/"
+mkdir -p "$FABRIC_CA_CLIENT_HOME/ordererOrganizations/hot.coc.com/msp/tlscacerts"
+cp "$FABRIC_CA_CLIENT_HOME/ordererOrganizations/hot.coc.com/users/Admin@hot.coc.com/msp/cacerts"/* \
+   "$FABRIC_CA_CLIENT_HOME/ordererOrganizations/hot.coc.com/msp/tlscacerts/"
+
+# Cold orderer organization MSP
+mkdir -p "$FABRIC_CA_CLIENT_HOME/ordererOrganizations/cold.coc.com/msp"
+cp -r "$FABRIC_CA_CLIENT_HOME/ordererOrganizations/cold.coc.com/users/Admin@cold.coc.com/msp/cacerts" \
+   "$FABRIC_CA_CLIENT_HOME/ordererOrganizations/cold.coc.com/msp/"
+mkdir -p "$FABRIC_CA_CLIENT_HOME/ordererOrganizations/cold.coc.com/msp/tlscacerts"
+cp "$FABRIC_CA_CLIENT_HOME/ordererOrganizations/cold.coc.com/users/Admin@cold.coc.com/msp/cacerts"/* \
+   "$FABRIC_CA_CLIENT_HOME/ordererOrganizations/cold.coc.com/msp/tlscacerts/"
+
+echo "✓ Organization-level MSP directories created"
+
+# ============================================================================
 # Enroll Peers
 # ============================================================================
 
@@ -169,6 +194,22 @@ echo ""
 echo "=== Enrolling Court Org (client-only) ==="
 enroll_identity "court" "10054" "court.coc.com" "CourtMSP" "admin" "admin"
 enroll_identity "court" "10054" "court.coc.com" "CourtMSP" "client" "user1"
+
+# ============================================================================
+# Create Peer Organization-level MSP directories from Admin enrollments
+# ============================================================================
+
+echo ""
+echo "=== Setting up peer organization-level MSP directories ==="
+
+for ORG in lawenforcement.hot.coc.com forensiclab.hot.coc.com auditor.cold.coc.com court.coc.com; do
+    ORG_DIR="$FABRIC_CA_CLIENT_HOME/peerOrganizations/$ORG"
+    mkdir -p "$ORG_DIR/msp"
+    cp -r "$ORG_DIR/users/Admin@$ORG/msp/cacerts" "$ORG_DIR/msp/"
+    mkdir -p "$ORG_DIR/msp/tlscacerts"
+    cp "$ORG_DIR/users/Admin@$ORG/msp/cacerts"/* "$ORG_DIR/msp/tlscacerts/"
+    echo "  ✓ Created MSP for $ORG"
+done
 
 # ============================================================================
 # Copy MSP config and create config.yaml
