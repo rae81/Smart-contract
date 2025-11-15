@@ -24,17 +24,26 @@ register_in_container() {
 
     echo "Registering $IDENTITY_NAME in $CONTAINER_NAME..."
 
-    # Run registration command inside the container using bootstrap admin credentials
-    # Inside container, CA chain is at /etc/hyperledger/fabric-ca-server/ca-chain.pem
-    # Use empty FABRIC_CA_CLIENT_HOME to force password auth (no cert lookup)
+    # First, enroll admin inside container if not already enrolled
+    # This creates the admin certificate needed for registration
     docker exec $CONTAINER_NAME sh -c \
-        "FABRIC_CA_CLIENT_HOME=/tmp/ca-client-$RANDOM fabric-ca-client register \
+        "if [ ! -f /tmp/ca-admin/msp/signcerts/cert.pem ]; then
+            FABRIC_CA_CLIENT_HOME=/tmp/ca-admin fabric-ca-client enroll \
+                -u https://admin:adminpw@localhost:7054 \
+                --caname ca-$CA_NAME \
+                --tls.certfiles /etc/hyperledger/fabric-ca-server/ca-chain.pem \
+                -M /tmp/ca-admin/msp > /dev/null 2>&1
+        fi" || true
+
+    # Now register using the enrolled admin credentials
+    docker exec $CONTAINER_NAME sh -c \
+        "FABRIC_CA_CLIENT_HOME=/tmp/ca-admin fabric-ca-client register \
         --caname ca-$CA_NAME \
         --id.name $IDENTITY_NAME \
         --id.secret ${IDENTITY_NAME}pw \
         --id.type $IDENTITY_TYPE \
         --tls.certfiles /etc/hyperledger/fabric-ca-server/ca-chain.pem \
-        -u https://admin:adminpw@localhost:7054"
+        -u https://localhost:7054"
 
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✓ Registered $IDENTITY_NAME successfully${NC}"
