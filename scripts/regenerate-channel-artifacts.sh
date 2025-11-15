@@ -27,7 +27,7 @@ docker run --rm -v "$PROJECT_ROOT:/work" -w /work/hot-blockchain \
   -profile HotChainChannel \
   -outputAnchorPeersUpdate channel-artifacts/LawEnforcementMSPanchors.tx \
   -channelID hotchannel \
-  -asOrg LawEnforcement
+  -asOrg LawEnforcementMSP
 
 docker run --rm -v "$PROJECT_ROOT:/work" -w /work/hot-blockchain \
   hyperledger/fabric-tools:2.5 \
@@ -35,7 +35,7 @@ docker run --rm -v "$PROJECT_ROOT:/work" -w /work/hot-blockchain \
   -profile HotChainChannel \
   -outputAnchorPeersUpdate channel-artifacts/ForensicLabMSPanchors.tx \
   -channelID hotchannel \
-  -asOrg ForensicLab
+  -asOrg ForensicLabMSP
 
 echo -e "\n=== Regenerating COLD blockchain channel artifacts ==="
 
@@ -58,7 +58,7 @@ docker run --rm -v "$PROJECT_ROOT:/work" -w /work/cold-blockchain \
   -profile ColdChainChannel \
   -outputAnchorPeersUpdate channel-artifacts/AuditorMSPanchors.tx \
   -channelID coldchannel \
-  -asOrg Auditor
+  -asOrg AuditorMSP
 
 echo -e "\n=== Verifying new channel artifacts ==="
 ls -lh "$PROJECT_ROOT/hot-blockchain/channel-artifacts/"
